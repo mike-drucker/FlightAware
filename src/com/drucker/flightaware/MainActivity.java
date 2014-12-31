@@ -14,6 +14,8 @@ public class MainActivity extends Activity
 	//<uses-permission android:name="android.permission.INTERNET" />
 	//<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	//<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+	
+	private final string TAG = "MainActivity";
 
 	private LocationManager locationManager=null;
 	private static Location location = null;
@@ -89,6 +91,7 @@ public class MainActivity extends Activity
 		}
 		catch (IOException e)
 		{
+			Log.d(TAG,"IOException",e);
 			e.printStackTrace();
 		}
 	}
