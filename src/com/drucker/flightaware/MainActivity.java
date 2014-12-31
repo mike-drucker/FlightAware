@@ -11,10 +11,6 @@ import android.hardware.*;
 
 public class MainActivity extends Activity
 {
-	//<uses-permission android:name="android.permission.INTERNET" />
-	//<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-	//<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-	
 	private final String TAG = "MainActivity";
 
 	private LocationManager locationManager=null;
@@ -42,7 +38,7 @@ public class MainActivity extends Activity
 		public void onStatusChanged(String provider, int status, Bundle extras) {}
 	};
 	
-    SensorEventListener onSensorEventChange = new SensorEventListener() {
+	SensorEventListener onSensorEventChange = new SensorEventListener() {
 		float[] gravity;
 		float[] geomagnetic;
 		public void onAccuracyChanged(Sensor sensor, int accuracy) {}
@@ -61,7 +57,7 @@ public class MainActivity extends Activity
 					float azimuth = orientation[0]; // orientation contains: azimuth, pitch and roll
 					azimuthDegrees = -azimuth*360/(2*3.14159f);
 				}
-	    	}
+			}
 		}
 	};
 
@@ -78,10 +74,10 @@ public class MainActivity extends Activity
 		accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		geomagneticSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 		sensorManager.registerListener(onSensorEventChange, accelerometerSensor, SensorManager.SENSOR_DELAY_FASTEST);
-        sensorManager.registerListener(onSensorEventChange, geomagneticSensor, SensorManager.SENSOR_DELAY_FASTEST);
-        //setup gps
-		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 10, onLocationChange);
+		sensorManager.registerListener(onSensorEventChange, geomagneticSensor, SensorManager.SENSOR_DELAY_FASTEST);
+		//setup gps
 		locationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
+		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 10, onLocationChange);
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 10, onLocationChange);
 		//setup http server
 		server= new LocationServer();
