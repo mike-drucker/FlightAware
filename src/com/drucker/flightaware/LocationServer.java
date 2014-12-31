@@ -19,9 +19,9 @@ public class LocationServer extends NanoHTTPD
 	{
 		switch(session.getUri())
 		{
-			case "/": case "/index": case "/index.html": case "/index.htm": return getResource("index","text/html");
+			case "/": case "/index": case "/index.html": case "/index.htm": return getAssetResource("index","text/html");
 			case "/data": return getLocation();
-			case "/jquery" : return getResource("jquery","application/javascript");
+			case "/jquery" : return getAssetResource("jquery","application/javascript");
 			default: return null;
 		}
 	}
@@ -32,6 +32,12 @@ public class LocationServer extends NanoHTTPD
 		int id = r.getIdentifier(resourceName,null,null);
 		InputStream inputStream = r.openRawResource(id);
 		return new NanoHTTPD.Response(Response.Status.OK, mimeType, new BufferedInputStream(inputStream));
+	}
+	
+	private NanoHTTPD.Response getAssetResource(String resourceFileName, String mimeType)
+	{
+		InputStream inputStream = context.getAssets().open(resourceFileName);
+		return new NanoHTTPD.Response(Response.Status.OK, mimeType, inputStream);
 	}
 	
 	private NanoHTTPD.Response getLocation()
