@@ -3,13 +3,8 @@
     <title>HUD</title>
     <script type="text/javascript" src="/raw/jquery-2.1.3.min.js" />
     <!--<script type="text/javascript" src="http://code.jquery.com/jquery-2.1.3.min.js"></script>-->
-    <script type="text/javascript">
-        alert('ok');
-        $(document).ready(function () {
-            console.log("first worker");
-            setTimeout(worker, 10);
-        });
-        (function worker() {
+ <script type="text/javascript">
+        function worker() {
             console.log("worker");
             $.ajax({
                 url: 'ajax/data',
@@ -18,23 +13,48 @@
                     $('.errorData').html('');
                     $('.errorStatus').html('');
                     $('.errorMessage').html('');
+                    drawHud($.parseJSON(data)); 
                 },
                 error: function (data, status, error) {
                     console.log("worker-error");
                     $('.errorData').html(data);
                     $('.errorStatus').html(status);
                     $('.errorMessage').html(error);
+                    drawHud(null);
                 },
                 complete: function () {
                     // Schedule the next request when the current one's complete
                     setTimeout(worker, 100);
                 }
             });
-        })();
+        };
+        $(document).ready(function () {
+            console.log("first worker");
+            setTimeout(worker, 10);
+        });
+
+        function drawHud(data)
+        {
+            var canvas = $("#canvas")[0];
+            var context = canvas.getContext('2d');
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.moveTo(10, canvas.height / 2);
+            context.lineTo(canvas.width - 10, canvas.height / 2);
+            context.stroke();
+            context.font = "15px Arial";
+            context.fillText("NNW 120°", canvas.width / 2 - 40, 15);
+            context.font = "10px Arial";
+            context.fillText("200 m", 10, canvas.height / 2 + 30);
+            context.fillText("20 m/s", 10, canvas.height / 2 + 40);
+            context.beginPath();
+            context.arc(canvas.width / 2, canvas.height / 2, 10, 0, 2 * Math.PI);
+            context.stroke();
+        }
     </script>
 </head>
 <body>
     <div class="errorData"></div><div class="errorStatus"></div><div class="errorMessage"></div>
     <div class="result"></div>
+    <canvas id="canvas" width="600" height="400" style="border:1px solid #d3d3d3;"></body>
 </body>
 </html>
