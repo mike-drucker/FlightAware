@@ -31,6 +31,7 @@
         $(document).ready(function () {
             console.log("first worker");
             setTimeout(worker, 10);
+            drawHud(null);
         });
 
         function drawHud(data)
