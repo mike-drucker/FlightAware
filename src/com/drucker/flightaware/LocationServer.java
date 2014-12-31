@@ -36,7 +36,7 @@ public class LocationServer extends NanoHTTPD
 	
 	private NanoHTTPD.Response getAssetResource(String resourceFileName, String mimeType)
 	{
-		InputStream inputStream = context.getAssets().open(resourceFileName);
+		InputStream inputStream = context.getAssets().open(resourceFileName,AssetManager.ACCESS_RANDOM);
 		return new NanoHTTPD.Response(Response.Status.OK, mimeType, inputStream);
 	}
 	
