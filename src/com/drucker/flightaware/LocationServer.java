@@ -16,9 +16,11 @@ public class LocationServer extends NanoHTTPD
 	{
 		Location location = MainActivity.getLocation();
 		float azimuthDegrees = MainActivity.getAzimuthDegrees();
+		String direction = MainActivity.getDirection();
 		JSONObject obj = new JSONObject();
 		try {
 			obj.accumulate("azi", azimuthDegrees);
+			obj.accumulate("dir", direction);
 			if(location==null)
 			{
 				obj.accumulate("gpsErr","No Location Fix");
