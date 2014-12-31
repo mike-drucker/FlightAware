@@ -28,6 +28,13 @@ public class MainActivity extends Activity
 	public static float getAzimuthDegrees() {
 		return azimuthDegrees;
 	}
+	
+	public static string getDirection()
+	{
+		String directions[] = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"}
+		return directions[(int)Math.round(( ((double)azimuthDegrees % 360) / 45)) % 8];
+	}
+	
 
 	LocationListener onLocationChange= new LocationListener() {
 		public void onLocationChanged(Location fix) {
