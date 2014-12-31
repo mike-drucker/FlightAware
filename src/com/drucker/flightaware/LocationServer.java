@@ -12,8 +12,9 @@ public class LocationServer extends NanoHTTPD
 	public NanoHTTPD.Response serve(NanoHTTPD.IHTTPSession session)
 	{
 		Location location = MainActivity.getLocation();
+		float azimuthDegrees = MainActivity.getAzimuthDegrees();
 		if(location==null)
-			return null;
+			return new Response(Status.ERROR, MIME_HTML,"No Location Fix");
 		JSONObject obj = new JSONObject();
 		try {
 			obj.accumulate("lat",location.getLatitude());
@@ -21,11 +22,14 @@ public class LocationServer extends NanoHTTPD
 			obj.accumulate("alt", location.getAltitude());
 			obj.accumulate("ber", location.getBearing());
 			obj.accumulate("spd", location.getSpeed());
+			obj.accumulate("azi", azimuthDegrees);
 			return new Response(obj.toString());
 		}
 		catch (JSONException e)
-		{}
-		return super.serve(session);
+		{
+			e.PrintStackTrace();
+			return new Response(Status.ERROR, MIME_HTML, String.format("Failed to build data to send, '%1$s'", e.getMessage()));
+		}
 	}
 	
 }
