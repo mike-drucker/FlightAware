@@ -16,10 +16,13 @@ public class LocationServer extends NanoHTTPD
 	{
 		Location location = MainActivity.getLocation();
 		float azimuthDegrees = MainActivity.getAzimuthDegrees();
-		if(location==null)
-			return new Response(Response.Status.NO_CONTENT, MIME_HTML,"No Location Fix");
 		JSONObject obj = new JSONObject();
 		try {
+			if(location==null)
+			{
+				obj.accumulate("err","No Location Fix");
+				return new Response(obj.toString());
+			}
 			obj.accumulate("lat",location.getLatitude());
 			obj.accumulate("lon", location.getLatitude());
 			obj.accumulate("alt", location.getAltitude());
