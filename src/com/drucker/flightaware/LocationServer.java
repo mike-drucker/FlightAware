@@ -18,9 +18,10 @@ public class LocationServer extends NanoHTTPD
 		float azimuthDegrees = MainActivity.getAzimuthDegrees();
 		JSONObject obj = new JSONObject();
 		try {
+			obj.accumulate("azi", azimuthDegrees);
 			if(location==null)
 			{
-				obj.accumulate("err","No Location Fix");
+				obj.accumulate("gpsErr","No Location Fix");
 				return new Response(obj.toString());
 			}
 			obj.accumulate("lat",location.getLatitude());
@@ -28,7 +29,6 @@ public class LocationServer extends NanoHTTPD
 			obj.accumulate("alt", location.getAltitude());
 			obj.accumulate("ber", location.getBearing());
 			obj.accumulate("spd", location.getSpeed());
-			obj.accumulate("azi", azimuthDegrees);
 			return new Response(obj.toString());
 		}
 		catch (JSONException e)
