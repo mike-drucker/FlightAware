@@ -31,7 +31,7 @@ public class LocationServer extends NanoHTTPD
 		Resources r = context.getResources();
 		int id = r.getIdentifier(resourceName,null,null);
 		InputStream inputStream = r.openRawResource(id);
-		return new NanoHTTPD.Response(Response.Status.OK, mimeType, inputStream);
+		return new NanoHTTPD.Response(Response.Status.OK, mimeType, new BufferedInputStream(inputStream));
 	}
 	
 	private NanoHTTPD.Response getLocation()
