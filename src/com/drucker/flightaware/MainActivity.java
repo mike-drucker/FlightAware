@@ -52,12 +52,12 @@ public class MainActivity extends Activity
 			if (gravity != null && geomagnetic != null) {
 				float R[] = new float[9];
 				float I[] = new float[9];
-				boolean success = SensorManager.getRotationMatrix(R, I, mGravity, mGeomagnetic);
+				boolean success = SensorManager.getRotationMatrix(R, I, gravity, geomagnetic);
 				if (success) {
 					float orientation[] = new float[3];
 					SensorManager.getOrientation(R, orientation);
 					float azimuth = orientation[0]; // orientation contains: azimuth, pitch and roll
-					azimuthDegrees = -azimut*360/(2*3.14159f);
+					azimuthDegrees = -azimuth*360/(2*3.14159f);
 				}
 	    	}
 		}
@@ -74,9 +74,9 @@ public class MainActivity extends Activity
 		//setup sensors
 		sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
 		accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-		magnetometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+		geomagneticSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 		sensorManager.registerListener(onSensorEventChange, accelerometerSensor, SensorManager.SENSOR_DELAY_FASTEST);
-        sensorManager.registerListener(onSensorEventChange, magnetometerSensor, SensorManager.SENSOR_DELAY_FASTEST);
+        sensorManager.registerListener(onSensorEventChange, geomagneticSensor, SensorManager.SENSOR_DELAY_FASTEST);
         //setup gps
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 10, onLocationChange);
 		locationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
