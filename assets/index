@@ -5,8 +5,8 @@
     <!--<script type="text/javascript" src="http://code.jquery.com/jquery-2.1.3.min.js"></script>-->
  <script type="text/javascript">
         window.onerror = function (msg, url, linenumber) {
-            $(".jsError").html('Error message: ' + msg + '\nURL: ' + url + '\nLine Number: ' + linenumber);
             alert('Error message: ' + msg + '\nURL: ' + url + '\nLine Number: ' + linenumber);
+            $(".jsError").html('Error message: ' + msg + '\nURL: ' + url + '\nLine Number: ' + linenumber);
             return true;
         }
         function worker() {
