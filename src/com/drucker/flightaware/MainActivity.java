@@ -29,9 +29,9 @@ public class MainActivity extends Activity
 		return azimuthDegrees;
 	}
 	
-	public static string getDirection()
+	public static String getDirection()
 	{
-		String directions[] = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"}
+		String directions[] = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
 		return directions[(int)Math.round(( ((double)azimuthDegrees % 360) / 45)) % 8];
 	}
 	
@@ -87,7 +87,7 @@ public class MainActivity extends Activity
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 10, onLocationChange);
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 10, onLocationChange);
 		//setup http server
-		server= new LocationServer();
+		server= new LocationServer(this);
 		try
 		{
 			server.start();

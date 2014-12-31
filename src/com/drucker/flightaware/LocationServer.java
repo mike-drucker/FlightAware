@@ -3,30 +3,33 @@ import com.drucker.flightaware.NanoHTTPD.*;
 import android.location.*;
 import org.json.*;
 import android.util.*;
+import android.content.res.*;
+import java.io.*;
+import android.content.*;
 
 public class LocationServer extends NanoHTTPD
 {
 	private final String TAG = "LocationServer";
-	
-	public LocationServer()
-	{super(8080);}
+	private Context context = null;
+	public LocationServer(Context context)
+	{super(8080);this.context = context;}
 
 	@Override
 	public NanoHTTPD.Response serve(NanoHTTPD.IHTTPSession session)
 	{
 		switch(session.getUri())
 		{
-			case "/", "/index","/index.html","/index.htm": return getResource("index","text/html");
+			case "/": case "/index": case "/index.html": case "/index.htm": return getResource("index","text/html");
 			case "/data": return getLocation();
 			case "/jquery" : return getResource("jquery","application/javascript");
-			case return null;
+			default: return null;
 		}
 	}
 	
-	private NanoHTTPD.Response getResource(String resourceName, string mimeType)
+	private NanoHTTPD.Response getResource(String resourceName, String mimeType)
 	{
-		Resources r = getResources();
-		int id = r.getIdentifier(resourceName);
+		Resources r = context.getResources();
+		int id = r.getIdentifier(resourceName,null,null);
 		InputStream inputStream = r.openRawResource(id);
 		return new NanoHTTPD.Response(Response.Status.OK, mimeType, inputStream);
 	}
