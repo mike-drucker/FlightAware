@@ -11,10 +11,6 @@ import android.hardware.*;
 
 public class MainActivity extends Activity
 {
-	//<uses-permission android:name="android.permission.INTERNET" />
-	//<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-	//<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-	
 	private final string TAG = "MainActivity";
 
 	private LocationManager locationManager=null;
@@ -43,7 +39,6 @@ public class MainActivity extends Activity
 	};
 	
 	SensorEventListener onSensorEventChange = new SensorEventListener() {
-		Log.d(TAG,"onSensorEventChange");
 		float[] gravity;
 		float[] geomagnetic;
 		public void onAccuracyChanged(Sensor sensor, int accuracy) {}
@@ -72,25 +67,20 @@ public class MainActivity extends Activity
 	@Override
 	public void onCreate(Bundle savedInstanceState)
 	{
-		Log.d(TAG,"onCreate");
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 		//setup sensors
 		sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
-		Log.d(TAG,"onCreateA");
 		accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		geomagneticSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-		Log.d(TAG,"onCreateB");
 		sensorManager.registerListener(onSensorEventChange, accelerometerSensor, SensorManager.SENSOR_DELAY_FASTEST);
-        sensorManager.registerListener(onSensorEventChange, geomagneticSensor, SensorManager.SENSOR_DELAY_FASTEST);
-        //setup gps
-        Log.d(TAG,"onCreateC");
-		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 10, onLocationChange);
+		sensorManager.registerListener(onSensorEventChange, geomagneticSensor, SensorManager.SENSOR_DELAY_FASTEST);
+		//setup gps
 		locationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
+		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 10, onLocationChange);
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 10, onLocationChange);
 		//setup http server
 		server= new LocationServer();
-		Log.d(TAG,"onCreateD");
 		try
 		{
 			server.start();
