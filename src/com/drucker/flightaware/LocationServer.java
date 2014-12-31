@@ -14,6 +14,25 @@ public class LocationServer extends NanoHTTPD
 	@Override
 	public NanoHTTPD.Response serve(NanoHTTPD.IHTTPSession session)
 	{
+		switch(session.getUri())
+		{
+			case "/", "/index","/index.html","/index.htm": return getResource("index","text/html");
+			case "/data": return getLocation();
+			case "/jquery" : return getResource("jquery","application/javascript");
+			case return null;
+		}
+	}
+	
+	private NanoHTTPD.Response getResource(String resourceName, string mimeType)
+	{
+		Resources r = getResources();
+		int id = r.getIdentifier(resourceName);
+		InputStream inputStream = r.openRawResource(id);
+		return new NanoHTTPD.Response(Response.Status.OK, mimeType, inputStream);
+	}
+	
+	private NanoHTTPD.Response getLocation()
+	{
 		Location location = MainActivity.getLocation();
 		float azimuthDegrees = MainActivity.getAzimuthDegrees();
 		String direction = MainActivity.getDirection();
