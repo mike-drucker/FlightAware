@@ -15,7 +15,7 @@ public class MainActivity extends Activity
 	//<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	//<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 	
-	private final string TAG = "MainActivity";
+	private final String TAG = "MainActivity";
 
 	private LocationManager locationManager=null;
 	private static Location location = null;

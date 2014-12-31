@@ -2,10 +2,11 @@ package com.drucker.flightaware;
 import com.drucker.flightaware.NanoHTTPD.*;
 import android.location.*;
 import org.json.*;
+import android.util.*;
 
 public class LocationServer extends NanoHTTPD
 {
-	private final string TAG = "LocationServer";
+	private final String TAG = "LocationServer";
 	
 	public LocationServer()
 	{super(8080);}
