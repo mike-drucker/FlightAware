@@ -42,7 +42,8 @@ public class MainActivity extends Activity
 		public void onStatusChanged(String provider, int status, Bundle extras) {}
 	};
 	
-    SensorEventListener onSensorEventChange = new SensorEventListener() {
+	SensorEventListener onSensorEventChange = new SensorEventListener() {
+		Log.d(TAG,"onSensorEventChange");
 		float[] gravity;
 		float[] geomagnetic;
 		public void onAccuracyChanged(Sensor sensor, int accuracy) {}
@@ -61,7 +62,7 @@ public class MainActivity extends Activity
 					float azimuth = orientation[0]; // orientation contains: azimuth, pitch and roll
 					azimuthDegrees = -azimuth*360/(2*3.14159f);
 				}
-	    	}
+			}
 		}
 	};
 
@@ -71,20 +72,25 @@ public class MainActivity extends Activity
 	@Override
 	public void onCreate(Bundle savedInstanceState)
 	{
+		Log.d(TAG,"onCreate");
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 		//setup sensors
 		sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+		Log.d(TAG,"onCreateA");
 		accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		geomagneticSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+		Log.d(TAG,"onCreateB");
 		sensorManager.registerListener(onSensorEventChange, accelerometerSensor, SensorManager.SENSOR_DELAY_FASTEST);
         sensorManager.registerListener(onSensorEventChange, geomagneticSensor, SensorManager.SENSOR_DELAY_FASTEST);
         //setup gps
+        Log.d(TAG,"onCreateC");
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 10, onLocationChange);
 		locationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 10, onLocationChange);
 		//setup http server
 		server= new LocationServer();
+		Log.d(TAG,"onCreateD");
 		try
 		{
 			server.start();
