@@ -62,7 +62,10 @@ public class MainActivity extends Activity
 					float orientation[] = new float[3];
 					SensorManager.getOrientation(R, orientation);
 					float azimuth = orientation[0]; // orientation contains: azimuth, pitch and roll
-					azimuthDegrees = -azimuth*360/(2*3.14159f);
+					azimuth = -azimuth*360/(2*3.14159f);
+					if(azimuth < 0)
+						azimuth = azimuth + 360;
+					azimuthDegrees = azimuth;
 				}
 			}
 		}
