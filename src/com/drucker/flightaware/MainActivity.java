@@ -19,6 +19,7 @@ public class MainActivity extends Activity
 	private static SensorManager sensorManager = null;
 	private static Sensor geomagneticSensor = null;
 	private static Sensor accelerometerSensor = null;
+	private static Sensor pressureSensor = null;
 	private static float azimuthDegrees = 0;
 	private static float pitchDegrees = 0;
 	private static float rollDegrees = 0;
