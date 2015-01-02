@@ -48,10 +48,11 @@
         	try{
         	var oldCanvas = $(".canvas")[canvasFlip ? 1 : 0];
             var canvas = $(".canvas")[canvasFlip ? 0 : 1];
+           // context.clearRect(0, 0, oldCanvas.width, oldCanvas.height);
             var context = canvas.getContext('2d');
             context.moveTo(10, canvas.height / 2);
             context.lineTo(canvas.width - 10, canvas.height / 2);
-            context.stroke();
+            //context.stroke(); //causes double vision
             context.beginPath();
             context.arc(canvas.width / 2, canvas.height / 2 + (data.pch * 2), 10, 0, 2 * Math.PI);
             context.stroke();
@@ -82,8 +83,8 @@
 	<span class="debug"></span>
     <div class="errorData"></div><div class="errorStatus"></div><div class="errorMessage"></div><div class="jsError"></div>
     <div class="result"></div>
-    <canvas class="canvas" width="600" height="400" style="border:1px solid #d3d3d3;" id="c1" />
-    <canvas class="canvas" width="600" height="400" style="border:1px solid #d3d3d3;visibility:hidden;" id="c2" />
+    <canvas class="canvas" width="600" height="400" style="border:1px solid #d3d3d3;" id="c1"></canvas>
+    <canvas class="canvas" width="600" height="400" style="border:1px solid #d3d3d3;visibility:hidden;" id="c2"></canvas>
 </body>
 </body>
 </html>
