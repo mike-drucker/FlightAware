@@ -22,6 +22,7 @@ public class MainActivity extends Activity
 	private static float azimuthDegrees = 0;
 	private static float pitchDegrees = 0;
 	private static float rollDegrees = 0;
+	private static float gForce = 0;
 
 	public static Location getLocation() {
 		return location;
@@ -45,6 +46,9 @@ public class MainActivity extends Activity
 		return directions[(int)Math.round(( ((double)azimuthDegrees % 360) / 45)) % 8];
 	}
 	
+	public static Location getGForce() {
+		return gForce;
+	}
 
 	LocationListener onLocationChange= new LocationListener() {
 		public void onLocationChanged(Location fix) {
@@ -60,8 +64,13 @@ public class MainActivity extends Activity
 		float[] geomagnetic;
 		public void onAccuracyChanged(Sensor sensor, int accuracy) {}
 		public void onSensorChanged(SensorEvent event) {
-			if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
+			if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 				gravity = event.values;
+				float x = (int)(values[SensorManager.DATA_X]);
+                float y = (int)(values[SensorManager.DATA_Y]);
+                float z = (int)(values[SensorManager.DATA_Z]);
+                gForce = Math.sqrt(x*x+y*y+z*z)/SensorManager.GRAVITY_EARTH;
+			}
 			if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
 				geomagnetic = event.values;
 			if (gravity != null && geomagnetic != null) {
