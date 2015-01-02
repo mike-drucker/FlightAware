@@ -13,6 +13,9 @@ import android.media.*;
 public class MainActivity extends Activity
 {
 	private final String TAG = "MainActivity";
+	private static Date lastSensorRequest = null;
+	private static bool sensorsRunning = false;
+	private static Object sensorSetupSemaphore = new Object();
 
 	private LocationManager locationManager=null;
 	private static Location location = null;
@@ -58,6 +61,25 @@ public class MainActivity extends Activity
 		return barometricPressure;
 	}
 	
+	public static void setSensorRequested() {
+		lastSensorRequest = new Date();
+		if(!sensorsRunning)
+		{
+			synchronized(sensorSetupSemaphore){
+				startSensors();
+				sensorsRunning = true;
+			}
+		}
+	}
+	
+	public static bool shouldSensorsStop() {
+		if(lastSensorRequest == null)
+			return true;
+		long now = (new Date()).getTime();
+		if(now - lastSensorRequest.getTime() > SENSOR_SHUTDOWN_TIMEOUT)
+			return true;
+	}
+	
 	LocationListener onLocationChange= new LocationListener() {
 		public void onLocationChanged(Location fix) {
 			location = fix;
@@ -65,6 +87,10 @@ public class MainActivity extends Activity
 		public void onProviderDisabled(String provider) {}
 		public void onProviderEnabled(String provider) {}
 		public void onStatusChanged(String provider, int status, Bundle extras) {}
+		if(sensorsRunning && )
+		{
+			synchronized(sensorSetupSemaphore){
+		}
 	};
 	
 	SensorEventListener onSensorEventChange = new SensorEventListener() {
@@ -118,21 +144,7 @@ public class MainActivity extends Activity
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		//setup sensors
-		sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
-		accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-		geomagneticSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-		pressureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
-		sensorManager.registerListener(onSensorEventChange, accelerometerSensor, SensorManager.SENSOR_DELAY_FASTEST);
-		sensorManager.registerListener(onSensorEventChange, geomagneticSensor, SensorManager.SENSOR_DELAY_FASTEST);
-		sensorManager.registerListener(onSensorEventChange, pressureSensor, SensorManager.SENSOR_DELAY_FASTEST);
-		//setup gps
-		locationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
-		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 10, onLocationChange);
-		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 10, onLocationChange);
-		camera = Camera.open();
-		Camera.Parameters parameters = camera.getParameters();
-		parameters.setJpegQuality(CameraProfile.QUALITY_LOW);
+		
 		parameters.setPictureSize(600,400);
 		parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
 		parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
@@ -149,13 +161,40 @@ public class MainActivity extends Activity
 			e.printStackTrace();
 		}
 	}
+	
+	private void startSensors() {
+		if(sensorsRunning)
+			return;
+		//setup sensors
+		sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+		accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+		geomagneticSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+		pressureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
+		sensorManager.registerListener(onSensorEventChange, accelerometerSensor, SensorManager.SENSOR_DELAY_FASTEST);
+		sensorManager.registerListener(onSensorEventChange, geomagneticSensor, SensorManager.SENSOR_DELAY_FASTEST);
+		sensorManager.registerListener(onSensorEventChange, pressureSensor, SensorManager.SENSOR_DELAY_FASTEST);
+		//setup gps
+		locationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
+		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 10, onLocationChange);
+		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 10, onLocationChange);
+		camera = Camera.open();
+		Camera.Parameters parameters = camera.getParameters();
+		parameters.setJpegQuality(CameraProfile.QUALITY_LOW);
+	}
+	
+	
+	private void stopSensors() {
+		if(!sensorsRunning)
+			return;
+		locationManager.removeUpdates(onLocationChange);
+		sensorManager.unregisterListener(onSensorEventChange);
+	}
 
 	@Override
 	public void onDestroy()
 	{
 		server.stop();
-		locationManager.removeUpdates(onLocationChange);
-		sensorManager.unregisterListener(onSensorEventChange);
+		stopSensors();
 		super.onDestroy();
 	}
 }
