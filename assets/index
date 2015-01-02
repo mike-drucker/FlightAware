@@ -2,12 +2,7 @@
 <head>
     <title>HUD</title>
     <style type="text/css">
-    	.canvas { 
-    		position:fixed;
-    		top:60px;
-    		left:10px;
-    	}
-    	
+        .canvas { position:fixed;top:60px;left:10px;}
     </style>
     <script type="text/javascript" src="/jquery" ></script>
  <script type="text/javascript">
@@ -43,22 +38,21 @@
             //drawHud(null);
         });
         var canvasFlip = false;
-        function drawHud(data)
-        {
-        	try{
-        	var oldCanvas = $(".canvas")[canvasFlip ? 1 : 0];
+        function drawHud(data) {
+            try {
+            var oldCanvas = $(".canvas")[canvasFlip ? 1 : 0];
             var canvas = $(".canvas")[canvasFlip ? 0 : 1];
-           // context.clearRect(0, 0, oldCanvas.width, oldCanvas.height);
             var context = canvas.getContext('2d');
             context.moveTo(10, canvas.height / 2);
             context.lineTo(canvas.width - 10, canvas.height / 2);
-            //context.stroke(); //causes double vision
             context.beginPath();
             context.arc(canvas.width / 2, canvas.height / 2 + (data.pch * 2), 10, 0, 2 * Math.PI);
             context.stroke();
- 			context.moveTo(canvas.width / 2, canvas.height / 2);
- 			context.lineTo(canvas.width / 2 + 100 * Math.cos(data.rol*(Math.PI/180)),canvas.height / 2 + 100 * Math.sin(data.rol*(Math.PI/180)));
-            context.lineTo(canvas.width / 2 - 100 * Math.cos(data.rol*(Math.PI/180)),canvas.height / 2 - 100 * Math.sin(data.rol*(Math.PI/180)));
+            context.moveTo(canvas.width / 2, canvas.height / 2);
+            context.lineTo(canvas.width / 2 + 100 * Math.cos(data.rol*(Math.PI/180)),
+                           canvas.height / 2 + 100 * Math.sin(data.rol*(Math.PI/180)));
+            context.lineTo(canvas.width / 2 - 100 * Math.cos(data.rol*(Math.PI/180)),
+                           canvas.height / 2 - 100 * Math.sin(data.rol*(Math.PI/180)));
             context.stroke();
             if(data.gpsErr !== null) {
             	context.font = "15px Arial";
