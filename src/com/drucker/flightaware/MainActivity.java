@@ -13,6 +13,7 @@ import android.media.*;
 public class MainActivity extends Activity
 {
 	private final String TAG = "MainActivity";
+	private final long SENSOR_SHUTDOWN_TIMEOUT = 1000 * 60 * 5; //5 min
 	private static Date lastSensorRequest = null;
 	private static bool sensorsRunning = false;
 	private static Object sensorSetupSemaphore = new Object();
@@ -76,21 +77,24 @@ public class MainActivity extends Activity
 		if(lastSensorRequest == null)
 			return true;
 		long now = (new Date()).getTime();
-		if(now - lastSensorRequest.getTime() > SENSOR_SHUTDOWN_TIMEOUT)
-			return true;
+		return (now - lastSensorRequest.getTime()) > SENSOR_SHUTDOWN_TIMEOUT;
+		
 	}
 	
 	LocationListener onLocationChange= new LocationListener() {
 		public void onLocationChanged(Location fix) {
 			location = fix;
+			if(sensorsRunning && shouldSensorsStop())
+			{
+				synchronized(sensorSetupSemaphore){
+					stopSensors();
+					sensorsRunning = false;
+				}
+			}
 		}
 		public void onProviderDisabled(String provider) {}
 		public void onProviderEnabled(String provider) {}
 		public void onStatusChanged(String provider, int status, Bundle extras) {}
-		if(sensorsRunning && )
-		{
-			synchronized(sensorSetupSemaphore){
-		}
 	};
 	
 	SensorEventListener onSensorEventChange = new SensorEventListener() {
@@ -122,6 +126,13 @@ public class MainActivity extends Activity
 					azimuthDegrees = calculateAzimuthDegrees(orientation[0]);
 					pitchDegrees = (float) Math.toDegrees(orientation[1]);
 					rollDegrees = (float) Math.toDegrees(orientation[2]);
+				}
+			}
+			if(sensorsRunning && shouldSensorsStop())
+			{
+				synchronized(sensorSetupSemaphore){
+					stopSensors();
+					sensorsRunning = false;
 				}
 			}
 		}
