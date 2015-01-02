@@ -72,10 +72,10 @@ public class MainActivity extends Activity
 		public void onSensorChanged(SensorEvent event) {
 			if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 				gravity = event.values;
-				float x = (int)(values[SensorManager.DATA_X]);
-				float y = (int)(values[SensorManager.DATA_Y]);
-				float z = (int)(values[SensorManager.DATA_Z]);
-				gForce = Math.sqrt(x*x+y*y+z*z)/SensorManager.GRAVITY_EARTH;
+				float x = (int)(event.values[SensorManager.DATA_X]);
+				float y = (int)(event.values[SensorManager.DATA_Y]);
+				float z = (int)(event.values[SensorManager.DATA_Z]);
+				gForce = (float) (Math.sqrt(x*x+y*y+z*z)/SensorManager.GRAVITY_EARTH);
 			}
 			if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
 				geomagnetic = event.values;
