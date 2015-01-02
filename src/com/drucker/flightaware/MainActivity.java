@@ -23,6 +23,7 @@ public class MainActivity extends Activity
 	private static float pitchDegrees = 0;
 	private static float rollDegrees = 0;
 	private static float gForce = 0;
+	private static float barometricPressure = 0;
 
 	public static Location getLocation() {
 		return location;
@@ -46,10 +47,14 @@ public class MainActivity extends Activity
 		return directions[(int)Math.round(( ((double)azimuthDegrees % 360) / 45)) % 8];
 	}
 	
-	public static Location getGForce() {
+	public static float getGForce() {
 		return gForce;
 	}
-
+	
+	public static float getBarometricPressure() {
+		return barometricPressure;
+	}
+	
 	LocationListener onLocationChange= new LocationListener() {
 		public void onLocationChanged(Location fix) {
 			location = fix;
@@ -67,13 +72,18 @@ public class MainActivity extends Activity
 			if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 				gravity = event.values;
 				float x = (int)(values[SensorManager.DATA_X]);
-                float y = (int)(values[SensorManager.DATA_Y]);
-                float z = (int)(values[SensorManager.DATA_Z]);
-                gForce = Math.sqrt(x*x+y*y+z*z)/SensorManager.GRAVITY_EARTH;
+				float y = (int)(values[SensorManager.DATA_Y]);
+				float z = (int)(values[SensorManager.DATA_Z]);
+				gForce = Math.sqrt(x*x+y*y+z*z)/SensorManager.GRAVITY_EARTH;
 			}
 			if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
 				geomagnetic = event.values;
-			if (gravity != null && geomagnetic != null) {
+			if (event.sensor.getType() == Sensor.TYPE_PRESSURE)
+			{
+				barometricPressure = event.values[0];
+			}
+			
+			if ((event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD || event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) && gravity != null && geomagnetic != null) {
 				float R[] = new float[9];
 				float I[] = new float[9];
 				boolean success = SensorManager.getRotationMatrix(R, I, gravity, geomagnetic);
@@ -109,8 +119,10 @@ public class MainActivity extends Activity
 		sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
 		accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		geomagneticSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+		pressureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
 		sensorManager.registerListener(onSensorEventChange, accelerometerSensor, SensorManager.SENSOR_DELAY_FASTEST);
 		sensorManager.registerListener(onSensorEventChange, geomagneticSensor, SensorManager.SENSOR_DELAY_FASTEST);
+		sensorManager.registerListener(onSensorEventChange, pressureSensor, SensorManager.SENSOR_DELAY_FASTEST);
 		//setup gps
 		locationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 10, onLocationChange);
