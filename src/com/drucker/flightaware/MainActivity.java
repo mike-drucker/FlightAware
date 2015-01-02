@@ -14,9 +14,11 @@ public class MainActivity extends Activity
 {
 	private final String TAG = "MainActivity";
 	private final long SENSOR_SHUTDOWN_TIMEOUT = 1000 * 60 * 5; //5 min
+	private final long PICTURE_INTERVAL = 1000 * 1 * 1; //1 second
 	private static Date lastSensorRequest = null;
 	private static bool sensorsRunning = false;
 	private static Object sensorSetupSemaphore = new Object();
+	
 
 	private LocationManager locationManager=null;
 	private static Location location = null;
@@ -26,11 +28,13 @@ public class MainActivity extends Activity
 	private static Sensor accelerometerSensor = null;
 	private static Sensor pressureSensor = null;
 	private static Camera camera = null;
+	private static Timer cameraTimer = null;
 	private static float azimuthDegrees = 0;
 	private static float pitchDegrees = 0;
 	private static float rollDegrees = 0;
 	private static float gForce = 0;
 	private static float barometricPressure = 0;
+	private static byte[] picture = null;
 	
 	public static Location getLocation() {
 		return location;
@@ -78,7 +82,21 @@ public class MainActivity extends Activity
 			return true;
 		long now = (new Date()).getTime();
 		return (now - lastSensorRequest.getTime()) > SENSOR_SHUTDOWN_TIMEOUT;
-		
+	}
+	
+	TimerTask cameraTimerTask = new TimerTask() {
+		public void run()
+		{
+			if(shouldSensorsStop() || !sensorsRunning)
+				return;
+			camera.takePicture(null,null,null,onPictureCallback);
+		}
+	}
+	
+	Camera.PictureCallback onPictureCallback = new Camera.PictureCallback() {
+		public void onPictureTaken(byte[] data, Camera camera) {
+			picture = data;
+		}
 	}
 	
 	LocationListener onLocationChange= new LocationListener() {
@@ -190,6 +208,8 @@ public class MainActivity extends Activity
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 10, onLocationChange);
 		camera = Camera.open();
 		Camera.Parameters parameters = camera.getParameters();
+		cameraTimer = new Timer();
+		cameraTimer.scheduleAtFixedRate(cameraTimerTask,0,PICTURE_INTERVAL);
 		parameters.setJpegQuality(CameraProfile.QUALITY_LOW);
 	}
 	
@@ -199,6 +219,8 @@ public class MainActivity extends Activity
 			return;
 		locationManager.removeUpdates(onLocationChange);
 		sensorManager.unregisterListener(onSensorEventChange);
+		cameraTimerTask.cancel();
+		camera.release();
 	}
 
 	@Override
