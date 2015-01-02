@@ -1,6 +1,14 @@
 <html>
 <head>
     <title>HUD</title>
+    <style type="text/css">
+    	.canvas { 
+    		position:fixed;
+    		top:60px;
+    		left:10px;
+    	}
+    	
+    </style>
     <script type="text/javascript" src="/jquery" ></script>
  <script type="text/javascript">
         window.onerror = function (msg, url, linenumber) {
@@ -9,7 +17,6 @@
             return true;
         }
         function worker() {
-            console.log("worker");
             $.ajax({
                 url: '/data',
                 success: function (data) {
@@ -18,14 +25,12 @@
                     $('.errorStatus').html('');
                     $('.errorMessage').html('');
                     $(".jsError").html('');
-                    drawHud($.parseJSON(data)); 
+                    drawHud(JSON.parse(data)); 
                 },
                 error: function (data, status, error) {
-                    console.log("worker-error");
                     $('.errorData').html(data);
                     $('.errorStatus').html(status);
                     $('.errorMessage').html(error);
-                    //drawHud(null);
                 },
                 complete: function () {
                     // Schedule the next request when the current one's complete
@@ -34,34 +39,51 @@
             });
         };
         $(document).ready(function () {
-            console.log("first worker");
             setTimeout(worker, 10);
             //drawHud(null);
         });
-
+        var canvasFlip = false;
         function drawHud(data)
         {
-            //alert(data);
-            var canvas = $("#canvas")[0];
+        	try{
+        	var oldCanvas = $(".canvas")[canvasFlip ? 1 : 0];
+            var canvas = $(".canvas")[canvasFlip ? 0 : 1];
             var context = canvas.getContext('2d');
-            context.clearRect(0, 0, canvas.width, canvas.height);
             context.moveTo(10, canvas.height / 2);
             context.lineTo(canvas.width - 10, canvas.height / 2);
             context.stroke();
-            context.font = "15px Arial";
-            context.fillText("NNW 120°", canvas.width / 2 - 40, 15);
-            context.font = "10px Arial";
-            context.fillText("200 m", 10, canvas.height / 2 + 30);
-            context.fillText(data.spd + " m/s", 10, canvas.height / 2 + 40);
             context.beginPath();
-            context.arc(canvas.width / 2, canvas.height / 2, 10, 0, 2 * Math.PI);
+            context.arc(canvas.width / 2, canvas.height / 2 + (data.pch * 2), 10, 0, 2 * Math.PI);
             context.stroke();
+ 			context.moveTo(canvas.width / 2, canvas.height / 2);
+ 			context.lineTo(canvas.width / 2 + 100 * Math.cos(data.rol*(Math.PI/180)),canvas.height / 2 + 100 * Math.sin(data.rol*(Math.PI/180)));
+            context.lineTo(canvas.width / 2 - 100 * Math.cos(data.rol*(Math.PI/180)),canvas.height / 2 - 100 * Math.sin(data.rol*(Math.PI/180)));
+            context.stroke();
+            if(data.gpsErr !== null) {
+            	context.font = "15px Arial";
+            	context.fillText(data.dir + " "+ data.azi+"\xB0", canvas.width / 2 - 40, 15);
+            	context.font = "10px Arial";
+            	context.fillText(data.alt+" m", 10, canvas.height / 2 + 30);
+            	context.fillText(data.spd + " m/s", 10, canvas.height / 2 + 40);
+            }
+            $(canvas).css("visibility","visible");
+            $(oldCanvas).css("visibility","hidden");
+            context = oldCanvas.getContext('2d');
+            context.clearRect(0, 0, oldCanvas.width, oldCanvas.height);
+            canvasFlip = (!canvasFlip);
+            }
+            catch(err){
+            	alert(err);
+            }
         }
     </script>
 </head>
 <body>
+	<span class="debug"></span>
     <div class="errorData"></div><div class="errorStatus"></div><div class="errorMessage"></div><div class="jsError"></div>
     <div class="result"></div>
-    <canvas id="canvas" width="600" height="400" style="border:1px solid #d3d3d3;"></body>
+    <canvas class="canvas" width="600" height="400" style="border:1px solid #d3d3d3;" id="c1" />
+    <canvas class="canvas" width="600" height="400" style="border:1px solid #d3d3d3;visibility:hidden;" id="c2" />
+</body>
 </body>
 </html>

@@ -20,6 +20,8 @@ public class MainActivity extends Activity
 	private static Sensor geomagneticSensor = null;
 	private static Sensor accelerometerSensor = null;
 	private static float azimuthDegrees = 0;
+	private static float pitchDegrees = 0;
+	private static float rollDegrees = 0;
 
 	public static Location getLocation() {
 		return location;
@@ -27,6 +29,14 @@ public class MainActivity extends Activity
 	
 	public static float getAzimuthDegrees() {
 		return azimuthDegrees;
+	}
+	
+	public static float getRollDegrees() {
+		return rollDegrees;
+	}
+	
+	public static float getPitchDegrees() {
+		return pitchDegrees;
 	}
 	
 	public static String getDirection()
@@ -61,15 +71,22 @@ public class MainActivity extends Activity
 				if (success) {
 					float orientation[] = new float[3];
 					SensorManager.getOrientation(R, orientation);
-					float azimuth = orientation[0]; // orientation contains: azimuth, pitch and roll
-					azimuth = -azimuth*360/(2*3.14159f);
-					if(azimuth < 0)
-						azimuth = azimuth + 360;
-					azimuthDegrees = azimuth;
+					azimuthDegrees = calculateAzimuthDegrees(orientation[0]);
+					pitchDegrees = (float) Math.toDegrees(orientation[1]);
+					rollDegrees = (float) Math.toDegrees(orientation[2]);
 				}
 			}
 		}
 	};
+	
+	private float calculateAzimuthDegrees(float azimuthRadians) {
+	    // orientation contains: azimuth, pitch and roll
+		azimuthRadians = -azimuthRadians*360/(2*3.14159f);
+		//correct for negative western directions
+		if(azimuthRadians < 0)
+			azimuthRadians = azimuthRadians + 360;
+		return azimuthRadians;
+	}
 
 
 
@@ -107,6 +124,7 @@ public class MainActivity extends Activity
 	{
 		server.stop();
 		locationManager.removeUpdates(onLocationChange);
+		sensorManager.unregisterListener(onSensorEventChange);
 		super.onDestroy();
 	}
 }
