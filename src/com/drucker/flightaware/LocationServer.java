@@ -20,7 +20,8 @@ public class LocationServer extends NanoHTTPD
 		switch(session.getUri())
 		{
 			case "/": case "/index": case "/index.html": case "/index.htm": return getAssetResource("index","text/html");
-			case "/data": return getLocation();
+			case "/data": return getData();
+			case "/picture": return getPicture();
 			case "/jquery" : return getAssetResource("jquery","application/javascript");
 			default: return null;
 		}
@@ -38,8 +39,15 @@ public class LocationServer extends NanoHTTPD
 		return null;
 	}
 	
-	private NanoHTTPD.Response getLocation()
+	private void NanoHTTPD.Response getPicture()
 	{
+		byte[] data = MainActivity.getPicture();
+		return new Response(Response.Status.OK,"image/jpeg", new ByteArrayInputStream(data));
+	}
+	
+	private NanoHTTPD.Response getData()
+	{
+		MainActivity.setSensorRequested();
 		Location location = MainActivity.getLocation();
 		float azimuthDegrees = MainActivity.getAzimuthDegrees();
 		String direction = MainActivity.getDirection();
