@@ -45,12 +45,16 @@ public class LocationServer extends NanoHTTPD
 		String direction = MainActivity.getDirection();
 		float pitchDegrees = MainActivity.getPitchDegrees();
 		float rollDegrees = MainActivity.getRollDegrees();
+		float gForce = MainActivity.getGForce();
+		float barometricPressure = MainActivity.getBarometricPressure();
 		JSONObject obj = new JSONObject();
 		try {
 			obj.accumulate("azi", azimuthDegrees);
 			obj.accumulate("dir", direction);
 			obj.accumulate("pch", pitchDegrees);
 			obj.accumulate("rol", rollDegrees);
+			obj.accumulate("g", gForce);
+			obj.accumulate("ber", barometricPressure);
 			if(location==null)
 			{
 				obj.accumulate("gpsErr","No Location Fix");
