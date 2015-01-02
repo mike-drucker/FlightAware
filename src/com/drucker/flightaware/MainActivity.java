@@ -8,6 +8,7 @@ import android.location.*;
 import android.util.*;
 import java.io.*;
 import android.hardware.*;
+import android.media.*;
 
 public class MainActivity extends Activity
 {
@@ -20,12 +21,13 @@ public class MainActivity extends Activity
 	private static Sensor geomagneticSensor = null;
 	private static Sensor accelerometerSensor = null;
 	private static Sensor pressureSensor = null;
+	private static Camera camera = null;
 	private static float azimuthDegrees = 0;
 	private static float pitchDegrees = 0;
 	private static float rollDegrees = 0;
 	private static float gForce = 0;
 	private static float barometricPressure = 0;
-
+	
 	public static Location getLocation() {
 		return location;
 	}
@@ -128,6 +130,13 @@ public class MainActivity extends Activity
 		locationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 10, onLocationChange);
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 10, onLocationChange);
+		camera = Camera.open();
+		Camera.Parameters parameters = camera.getParameters();
+		parameters.setJpegQuality(CameraProfile.QUALITY_LOW);
+		parameters.setPictureSize(600,400);
+		parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
+		parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+		camera.setParameters(parameters);
 		//setup http server
 		server= new LocationServer(this);
 		try
