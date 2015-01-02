@@ -39,7 +39,7 @@ public class LocationServer extends NanoHTTPD
 		return null;
 	}
 	
-	private void NanoHTTPD.Response getPicture()
+	private NanoHTTPD.Response getPicture()
 	{
 		byte[] data = MainActivity.getPicture();
 		return new Response(Response.Status.OK,"image/jpeg", new ByteArrayInputStream(data));
