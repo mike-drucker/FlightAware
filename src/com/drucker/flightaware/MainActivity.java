@@ -62,6 +62,11 @@ public class MainActivity extends Activity
 		return gForce;
 	}
 	
+	public static byte[] getPicture()
+	{
+		return picture;
+	}
+	
 	public static float getBarometricPressure() {
 		return barometricPressure;
 	}
