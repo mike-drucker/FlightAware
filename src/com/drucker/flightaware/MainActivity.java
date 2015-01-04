@@ -221,16 +221,21 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback
 			Camera.Size size = (Camera.Size) sizes.get(i);
 			System.err.println("Supported Size: " + size.width + "×" + size.height);         
 		}
+	    List<String> focusModes = parameters.getSupportedFocusModes();
+		for (int i=0;i<focusModes.size();i++){
+			System.err.println("Supported Focus Modes: " + focusModes.get(i));         
+		}
+		List<int[]> fpsRangers = parameters.getSupportedPreviewFpsRange();
+		for (int i=0;i<fpsRangers.size();i++){
+			System.err.println("Supported Preview Frame Rates: " + fpsRangers.get(i)[0] +","+fpsRangers.get(i)[1]);         
+		}
 		parameters.setPictureSize(320,240);
-		//parameters.setPictureSize(600,400);
-		parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
+		//parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
 		parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
 		parameters.setJpegQuality(CameraProfile.QUALITY_LOW);
-		//parameters.setPreviewFrameRate(20);
-		//parameters.setPreviewSize(100,100);
 		camera.setParameters(parameters);
-		//view = (SurfaceView) findViewById( R.id.surfaceView);
-		view = new SurfaceView(this);
+		view = (SurfaceView) findViewById( R.id.surfaceView);
+		//view = new SurfaceView(this);
 		//view.setVisibility(view.INVISIBLE);
 		viewHolder = view.getHolder();
 		viewHolder.addCallback(this);
