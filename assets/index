@@ -6,11 +6,27 @@
     </style>
     <script type="text/javascript" src="/jquery" ></script>
  <script type="text/javascript">
+        var picture = null;
         window.onerror = function (msg, url, linenumber) {
             alert('Error message: ' + msg + '\nURL: ' + url + '\nLine Number: ' + linenumber);
             $(".jsError").html('Error message: ' + msg + '\nURL: ' + url + '\nLine Number: ' + linenumber);
             return true;
         }
+        
+        function picWorker() {
+        	var img = $("<img />").attr('src', '/picture?t=' + (Date.now()/1000))
+    		.load(function() {
+        		if (!this.complete || typeof this.naturalWidth == "undefined" || this.naturalWidth == 0) {
+            		console.log('broken image!');
+            		setTimeout(picWorker, 1000);
+        		} else {
+        			$("#something").html("");
+            		$("#something").append(img);
+            		setTimeout(picWorker, 500);
+        		}
+    		});
+        }
+        
         function worker() {
             $.ajax({
                 url: '/data',
@@ -35,7 +51,7 @@
         };
         $(document).ready(function () {
             setTimeout(worker, 10);
-            //drawHud(null);
+            setTimeout(picWorker, 500);
         });
         var canvasFlip = false;
         function drawHud(data) {
@@ -61,6 +77,9 @@
             	context.fillText(data.alt+" m", 10, canvas.height / 2 + 30);
             	context.fillText(data.spd + " m/s", 10, canvas.height / 2 + 40);
             }
+            //if(picture !== null) {
+            //    canvas.drawImage(picture,0,0);
+            //}
             $(canvas).css("visibility","visible");
             $(oldCanvas).css("visibility","hidden");
             context = oldCanvas.getContext('2d');
@@ -79,6 +98,7 @@
     <div class="result"></div>
     <canvas class="canvas" width="600" height="400" style="border:1px solid #d3d3d3;" id="c1"></canvas>
     <canvas class="canvas" width="600" height="400" style="border:1px solid #d3d3d3;visibility:hidden;" id="c2"></canvas>
+    <div id="something"></div>
 </body>
 </body>
 </html>
