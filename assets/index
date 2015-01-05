@@ -14,7 +14,7 @@
         }
         
         function picWorker() {
-        	var img = $("<img />").attr('src', '/picture?t=' + (Date.now()/1000))
+        	var img = $("<img />").attr('src', '/picture?t=' + (Date.now()/1000)).attr('id',"picStore")
     		.load(function() {
         		if (!this.complete || typeof this.naturalWidth == "undefined" || this.naturalWidth == 0) {
             		console.log('broken image!');
@@ -59,6 +59,9 @@
             var oldCanvas = $(".canvas")[canvasFlip ? 1 : 0];
             var canvas = $(".canvas")[canvasFlip ? 0 : 1];
             var context = canvas.getContext('2d');
+            var image =document.getElementById('picStore');
+            if(image !== null)
+                context.drawImage(image,0,0,canvas.width,canvas.height);
             context.moveTo(10, canvas.height / 2);
             context.lineTo(canvas.width - 10, canvas.height / 2);
             context.beginPath();
