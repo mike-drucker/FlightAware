@@ -14,40 +14,15 @@ import android.widget.TableRow.*;
 import com.commonsware.cwac.camera.*;
 //import android.graphics.*;
 
-public class MainActivity extends Activity 
-//implements SurfaceHolder.Callback
+public class MainActivity extends Activity
 {
 	
-//	@Override
-//	public void surfaceCreated(SurfaceHolder holder) {
-//		try {
-//			camera.setDisplayOrientation(90);
-//			camera.setPreviewDisplay(viewHolder);
-//			camera.startPreview();
-//			cameraTakingPicture = false;
-//		}
-//		catch (IOException e)   {e.printStackTrace();}
-//	}
-
-//	@Override
-//	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height){}
-//
-//	@Override 
-//    public void surfaceDestroyed(SurfaceHolder holder) {
-//        if (camera == null)
-//            return; 
-//        camera.stopPreview(); 
-//        camera.release(); 
-//        camera = null;
-//	}
-
 	private final static String TAG = "MainActivity";
 	private final static long SENSOR_SHUTDOWN_TIMEOUT = 1000 * 60 * 5; //5 min
 	private final static long PICTURE_INTERVAL = 1000 * 1 * 1; //1 second
 	private final static long SENSOR_INTERVAL = 1000 * 5 *1; //5 seconds
 	private static Date lastSensorRequest = null;
 	private static boolean sensorsRunning = false;
-	private boolean cameraTakingPicture = false;
 	private static Object sensorSetupSemaphore = new Object();
 	
 
@@ -115,9 +90,7 @@ public class MainActivity extends Activity
 	public static boolean shouldSensorsStop() {
 		if(lastSensorRequest == null)
 			return true;
-		System.out.println("should sensors stop");
 		long now = (new Date()).getTime();
-		System.out.println(now - lastSensorRequest.getTime());
 		return (now - lastSensorRequest.getTime()) > SENSOR_SHUTDOWN_TIMEOUT;
 	}
 	
@@ -134,16 +107,15 @@ public class MainActivity extends Activity
 	
 	TimerTask cameraTimerTask = new TimerTask() {
 		public void run() {
-			System.err.println("pic timerA");
-			System.out.println(cameraTakingPicture);
-			System.out.println(shouldSensorsStop());
-			System.out.println(!sensorsRunning);
-			if(cameraTakingPicture || shouldSensorsStop() || !sensorsRunning)
+			if( shouldSensorsStop() || !sensorsRunning)
 				return;
-			System.err.println("pic timerB");
-			cameraTakingPicture = true;
 			//camera.takePicture(null,null,null,onPictureCallback);
-			fragment.takePicture();
+			try
+			{
+				fragment.takePicture();
+			}
+			catch (IllegalStateException e)
+			{/*do nothing*/}
 		}
 	};
 	
@@ -235,7 +207,6 @@ public class MainActivity extends Activity
 						//camera.takePicture(null,null,null,onPictureCallback);
 						fragment.takePicture();
 					}catch(RuntimeException e){e.printStackTrace();System.err.println(e.getMessage());System.out.println("ok");}
-		
 				}
 		});
 		//setup camera
@@ -248,7 +219,8 @@ public class MainActivity extends Activity
 		
 		//start camera timer
 		cameraTimer.scheduleAtFixedRate(cameraTimerTask,0,PICTURE_INTERVAL);
-		
+		//start sensor timer
+		cameraTimer.scheduleAtFixedRate(sensorCheckTimer,0,SENSOR_INTERVAL);
 		//setup http server
 		server= new LocationServer(this);
 		try {
@@ -343,7 +315,6 @@ public class MainActivity extends Activity
 		locationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 10, onLocationChange);
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 10, onLocationChange);
-		cameraTimer.scheduleAtFixedRate(sensorCheckTimer,0,SENSOR_INTERVAL);
 	}
 	
 	

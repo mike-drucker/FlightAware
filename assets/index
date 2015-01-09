@@ -18,13 +18,12 @@
     		.load(function() {
         		if (!this.complete || typeof this.naturalWidth == "undefined" || this.naturalWidth == 0) {
             		console.log('broken image!');
-            		setTimeout(picWorker, 1000);
         		} else {
         			$("#something").html("");
             		$("#something").append(img);
-            		setTimeout(picWorker, 500);
         		}
     		});
+    		setTimeout(picWorker, 1000);
         }
         
         function worker() {
