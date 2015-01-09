@@ -29,7 +29,7 @@ public class FlightCameraHost extends SimpleCameraHost
 			if(size.width < 320)
 				break;
 		}
-	    List<String> focusModes = parameters.getSupportedFocusModes();
+		List<String> focusModes = parameters.getSupportedFocusModes();
 		if(focusModes.contains("infinity"))
 			parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
 		else if(focusModes.contains("fixed"))
@@ -39,7 +39,7 @@ public class FlightCameraHost extends SimpleCameraHost
 		}
 		//use lowest supported preview framerate
 		List<int[]> fpsRanges = parameters.getSupportedPreviewFpsRange();
-		parameters.setPreviewFrameRate(fpsRanges.get(Camera.Parameters.PREVIEW_FPS_MIN_INDEX)[0]);
+		//parameters.setPreviewFrameRate(fpsRanges.get(Camera.Parameters.PREVIEW_FPS_MIN_INDEX)[0]);
 		for (int i=0;i<fpsRanges.size();i++){
 			System.err.println("Supported Preview Frame Rates: " + fpsRanges.get(i)[0] +","+fpsRanges.get(i)[1]);         
 		}
@@ -47,10 +47,9 @@ public class FlightCameraHost extends SimpleCameraHost
 		for (int i=0;i<previewSizes.size();i++){
 			System.err.println("Supported Preview Sizes: " + previewSizes.get(i).width + "×" +previewSizes.get(i).width);         
 		}
-		parameters.setPreviewSize(previewSizes.get(previewSizes.size()-1).width, previewSizes.get(previewSizes.size()-1).height);
-		parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+		//parameters.setPreviewSize(previewSizes.get(previewSizes.size()-1).width, previewSizes.get(previewSizes.size()-1).height);
+		//parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
 		parameters.setJpegQuality(CameraProfile.QUALITY_LOW);
-		
 		return super.adjustPictureParameters(xact, parameters);
 	}
 
