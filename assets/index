@@ -14,7 +14,7 @@
         }
         
         function picWorker() {
-        	var img = $("<img />").attr('src', '/picture?t=' + (Date.now()/1000)).attr('id',"picStore")
+        	var img = $("<img id='picStore' style='display:none' />").attr('src', '/picture?t=' + (Date.now()/1000))
     		.load(function() {
         		if (!this.complete || typeof this.naturalWidth == "undefined" || this.naturalWidth == 0) {
             		console.log('broken image!');

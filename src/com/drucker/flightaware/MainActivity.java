@@ -11,33 +11,35 @@ import android.hardware.*;
 import android.media.*;
 import java.util.*;
 import android.widget.TableRow.*;
+import com.commonsware.cwac.camera.*;
 //import android.graphics.*;
 
-public class MainActivity extends Activity implements SurfaceHolder.Callback
+public class MainActivity extends Activity 
+//implements SurfaceHolder.Callback
 {
-	@Override
-	public void surfaceCreated(SurfaceHolder holder) {
-		try {
-			camera.setDisplayOrientation(90);
-			camera.setPreviewDisplay(viewHolder);
-			camera.startPreview();
-			cameraTakingPicture = false;
-			cameraTimer.scheduleAtFixedRate(sensorCheckTimer,0,SENSOR_INTERVAL);
-		}
-		catch (IOException e)   {e.printStackTrace();}
-	}
+	
+//	@Override
+//	public void surfaceCreated(SurfaceHolder holder) {
+//		try {
+//			camera.setDisplayOrientation(90);
+//			camera.setPreviewDisplay(viewHolder);
+//			camera.startPreview();
+//			cameraTakingPicture = false;
+//		}
+//		catch (IOException e)   {e.printStackTrace();}
+//	}
 
-	@Override
-	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height){}
-
-	@Override 
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        if (camera == null)
-            return; 
-        camera.stopPreview(); 
-        camera.release(); 
-        camera = null;
-	}
+//	@Override
+//	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height){}
+//
+//	@Override 
+//    public void surfaceDestroyed(SurfaceHolder holder) {
+//        if (camera == null)
+//            return; 
+//        camera.stopPreview(); 
+//        camera.release(); 
+//        camera = null;
+//	}
 
 	private final static String TAG = "MainActivity";
 	private final static long SENSOR_SHUTDOWN_TIMEOUT = 1000 * 60 * 5; //5 min
@@ -45,7 +47,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback
 	private final static long SENSOR_INTERVAL = 1000 * 5 *1; //5 seconds
 	private static Date lastSensorRequest = null;
 	private static boolean sensorsRunning = false;
-	private boolean cameraTakingPicture = true;
+	private boolean cameraTakingPicture = false;
 	private static Object sensorSetupSemaphore = new Object();
 	
 
@@ -56,18 +58,20 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback
 	private static Sensor geomagneticSensor = null;
 	private static Sensor accelerometerSensor = null;
 	private static Sensor pressureSensor = null;
-	private static Camera camera = null;
+	//private static Camera camera = null;
 	private static Timer cameraTimer = null;
 	private static float azimuthDegrees = 0;
 	private static float pitchDegrees = 0;
 	private static float rollDegrees = 0;
 	private static float gForce = 0;
 	private static float barometricPressure = 0;
-	private static byte[] picture = null;
+	//private static byte[] picture = null;
 	
-	private SurfaceView view = null;
-	private SurfaceHolder viewHolder = null;
+	//private SurfaceView view = null;
+	//private SurfaceHolder viewHolder = null;
 	private TextView sensorTextView = null;
+	
+	com.commonsware.cwac.camera.CameraFragment fragment = null;
 	
 	public static Location getLocation() {
 		return location;
@@ -95,7 +99,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback
 	}
 	
 	public static byte[] getPicture() {
-		return picture;
+		if(FlightCameraHost.data == null)
+			return null;
+		return FlightCameraHost.data.clone();
 	}
 	
 	public static float getBarometricPressure() {
@@ -109,7 +115,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback
 	public static boolean shouldSensorsStop() {
 		if(lastSensorRequest == null)
 			return true;
+		System.out.println("should sensors stop");
 		long now = (new Date()).getTime();
+		System.out.println(now - lastSensorRequest.getTime());
 		return (now - lastSensorRequest.getTime()) > SENSOR_SHUTDOWN_TIMEOUT;
 	}
 	
@@ -126,21 +134,27 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback
 	
 	TimerTask cameraTimerTask = new TimerTask() {
 		public void run() {
+			System.err.println("pic timerA");
+			System.out.println(cameraTakingPicture);
+			System.out.println(shouldSensorsStop());
+			System.out.println(!sensorsRunning);
 			if(cameraTakingPicture || shouldSensorsStop() || !sensorsRunning)
 				return;
+			System.err.println("pic timerB");
 			cameraTakingPicture = true;
-			camera.takePicture(null,null,null,onPictureCallback);
+			//camera.takePicture(null,null,null,onPictureCallback);
+			fragment.takePicture();
 		}
 	};
 	
-	Camera.PictureCallback onPictureCallback = new Camera.PictureCallback() {
-		public void onPictureTaken(byte[] data, Camera camera) {
-			picture = data;
-			//System.out.println("onPictureCallback");
-			camera.startPreview();
-			cameraTakingPicture = false;
-		}
-	};
+//	Camera.PictureCallback onPictureCallback = new Camera.PictureCallback() {
+//		public void onPictureTaken(byte[] data, Camera camera) {
+//			picture = data;
+//			//System.out.println("onPictureCallback");
+//			camera.startPreview();
+//			cameraTakingPicture = false;
+//		}
+//	};
 	
 	LocationListener onLocationChange= new LocationListener() {
 		public void onLocationChanged(Location fix) {
@@ -209,24 +223,32 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
+		System.err.println("---------------------------------------");
+		//fragment = (CameraFragment) this.getFragmentManager().beginTransaction().
 		sensorTextView = (TextView) findViewById(R.id.sensorTextView);
+		fragment = (CameraFragment) this.getFragmentManager().findFragmentById(R.id.camera_preview);
 		cameraTimer = new Timer();
 		final Button button = (Button) findViewById(R.id.button);
 		button.setOnClickListener(new View.OnClickListener(){
 				public void onClick(View v) {
 					try {
-						camera.takePicture(null,null,null,onPictureCallback);
+						//camera.takePicture(null,null,null,onPictureCallback);
+						fragment.takePicture();
 					}catch(RuntimeException e){e.printStackTrace();System.err.println(e.getMessage());System.out.println("ok");}
 		
 				}
 		});
 		//setup camera
 		setupCamera();
-		viewHolder = view.getHolder();
-		viewHolder.addCallback(this);
-		viewHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+		//viewHolder = view.getHolder();
+		//viewHolder.addCallback(this);
+		//viewHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 		
 		//camera.takePicture(null,null,null,onPictureCallback);
+		
+		//start camera timer
+		cameraTimer.scheduleAtFixedRate(cameraTimerTask,0,PICTURE_INTERVAL);
+		
 		//setup http server
 		server= new LocationServer(this);
 		try {
@@ -241,68 +263,68 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback
 	private String getCameraSetup()
 	{
 		StringBuilder sb = new StringBuilder();
-		Camera.Parameters p = camera.getParameters();
-		sb.append(" flash:");
-		sb.append(p.getFlashMode());
-		sb.append(" focus:");
-		sb.append(p.getFocusMode());
-		sb.append(" quality:");
-		sb.append(p.getJpegQuality());
-		sb.append(" picture:");
-		sb.append(p.getPictureSize().width);
-		sb.append("×");
-		sb.append(p.getPictureSize().height);
-		sb.append(" prevew:");
-		sb.append(p.getPreviewFrameRate());
-		sb.append(" preview:");
-		sb.append(p.getPreviewSize().width);
-		sb.append("×");
-		sb.append(p.getPreviewSize().height);
+//		Camera.Parameters p = camera.getParameters();
+//		sb.append(" flash:");
+//		sb.append(p.getFlashMode());
+//		sb.append(" focus:");
+//		sb.append(p.getFocusMode());
+//		sb.append(" quality:");
+//		sb.append(p.getJpegQuality());
+//		sb.append(" picture:");
+//		sb.append(p.getPictureSize().width);
+//		sb.append("×");
+//		sb.append(p.getPictureSize().height);
+//		sb.append(" prevew:");
+//		sb.append(p.getPreviewFrameRate());
+//		sb.append(" preview:");
+//		sb.append(p.getPreviewSize().width);
+//		sb.append("×");
+//		sb.append(p.getPreviewSize().height);
 		return sb.toString();
 	}
 
 	private void setupCamera()
 	{
-		camera = Camera.open(0);
-		Camera.Parameters parameters = camera.getParameters();
-		List<Camera.Size> sizes = parameters.getSupportedPictureSizes();
-		for(Camera.Size size : sizes) {
-			System.err.println("Supported Size: " + size.width + "×" + size.height);
-			parameters.setPictureSize(size.width, size.height);
-			if(size.width < 320)
-				break;
-		}
-	    List<String> focusModes = parameters.getSupportedFocusModes();
-		if(focusModes.contains("infinity"))
-			parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
-		else if(focusModes.contains("fixed"))
-			parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_FIXED);
-		for (int i=0;i<focusModes.size();i++){
-			System.err.println("Supported Focus Modes: " + focusModes.get(i));         
-		}
-		//use lowest supported preview framerate
-		List<int[]> fpsRanges = parameters.getSupportedPreviewFpsRange();
-		parameters.setPreviewFrameRate(fpsRanges.get(Camera.Parameters.PREVIEW_FPS_MIN_INDEX)[0]);
-		for (int i=0;i<fpsRanges.size();i++){
-			System.err.println("Supported Preview Frame Rates: " + fpsRanges.get(i)[0] +","+fpsRanges.get(i)[1]);         
-		}
-		List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
-		for (int i=0;i<previewSizes.size();i++){
-			System.err.println("Supported Preview Sizes: " + previewSizes.get(i).width + "×" +previewSizes.get(i).width);         
-		}
-		parameters.setPreviewSize(previewSizes.get(previewSizes.size()-1).width, previewSizes.get(previewSizes.size()-1).height);
-		parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-		parameters.setJpegQuality(CameraProfile.QUALITY_LOW);
-		camera.setParameters(parameters);
-		view = (SurfaceView) findViewById( R.id.surfaceView);
-		ViewGroup.LayoutParams p = view.getLayoutParams();
-		p.height = previewSizes.get(previewSizes.size()-1).height;
-		p.width = previewSizes.get(previewSizes.size()-1).width;
-		view.setLayoutParams(p);
-		//view = new SurfaceView(this);
-		//view.setVisibility(view.INVISIBLE);
-		
-		sensorTextView.setText(getCameraSetup());
+//		camera = Camera.open(0);
+//		Camera.Parameters parameters = camera.getParameters();
+//		List<Camera.Size> sizes = parameters.getSupportedPictureSizes();
+//		for(Camera.Size size : sizes) {
+//			System.err.println("Supported Size: " + size.width + "×" + size.height);
+//			parameters.setPictureSize(size.width, size.height);
+//			if(size.width < 320)
+//				break;
+//		}
+//	    List<String> focusModes = parameters.getSupportedFocusModes();
+//		if(focusModes.contains("infinity"))
+//			parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
+//		else if(focusModes.contains("fixed"))
+//			parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_FIXED);
+//		for (int i=0;i<focusModes.size();i++){
+//			System.err.println("Supported Focus Modes: " + focusModes.get(i));         
+//		}
+//		//use lowest supported preview framerate
+//		List<int[]> fpsRanges = parameters.getSupportedPreviewFpsRange();
+//		parameters.setPreviewFrameRate(fpsRanges.get(Camera.Parameters.PREVIEW_FPS_MIN_INDEX)[0]);
+//		for (int i=0;i<fpsRanges.size();i++){
+//			System.err.println("Supported Preview Frame Rates: " + fpsRanges.get(i)[0] +","+fpsRanges.get(i)[1]);         
+//		}
+//		List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
+//		for (int i=0;i<previewSizes.size();i++){
+//			System.err.println("Supported Preview Sizes: " + previewSizes.get(i).width + "×" +previewSizes.get(i).width);         
+//		}
+//		parameters.setPreviewSize(previewSizes.get(previewSizes.size()-1).width, previewSizes.get(previewSizes.size()-1).height);
+//		parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+//		parameters.setJpegQuality(CameraProfile.QUALITY_LOW);
+//		camera.setParameters(parameters);
+//		view = (SurfaceView) findViewById( R.id.surfaceView);
+//		ViewGroup.LayoutParams p = view.getLayoutParams();
+//		p.height = previewSizes.get(previewSizes.size()-1).height;
+//		p.width = previewSizes.get(previewSizes.size()-1).width;
+//		view.setLayoutParams(p);
+//		//view = new SurfaceView(this);
+//		//view.setVisibility(view.INVISIBLE);
+//		
+//		sensorTextView.setText(getCameraSetup());
 	}
 	
 	private void startSensors() {
@@ -321,7 +343,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback
 		locationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 10, onLocationChange);
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 10, onLocationChange);
-		cameraTimer.scheduleAtFixedRate(cameraTimerTask,0,PICTURE_INTERVAL);
+		cameraTimer.scheduleAtFixedRate(sensorCheckTimer,0,SENSOR_INTERVAL);
 	}
 	
 	

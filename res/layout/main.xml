@@ -4,12 +4,12 @@
     android:layout_height="fill_parent"
     android:gravity="center"
     android:orientation="vertical" >
-    <SurfaceView
+    <!--<SurfaceView
         android:layout_width="400px"
         android:layout_height="600px"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
-        android:id="@+id/surfaceView" />
+        android:id="@+id/surfaceView" />-->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -25,4 +25,9 @@
 		android:layout_height="110px"
 		android:text="@string/hello"
 		android:id="@+id/button"/>
+	<fragment
+		android:id="@+id/camera_preview"
+		android:name="com.drucker.flightaware.FlightCameraFragment"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"/>
 </LinearLayout>

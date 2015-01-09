@@ -16,14 +16,14 @@ public class LocationServer extends NanoHTTPD
 
 	@Override
 	public NanoHTTPD.Response serve(NanoHTTPD.IHTTPSession session) {
-		System.out.println(session.getUri());    
+		//System.out.println(session.getUri());    
 		
 		switch(session.getUri())   {
 			case "/": case "/index": case "/index.html": case "/index.htm": return getAssetResource("index","text/html");
 			case "/data": return getData();
 			case "/picture": return getPicture();
 			case "/jquery" : return getAssetResource("jquery","application/javascript");
-			default: return null;
+			default: return getRedirect("/");
 		}
 	}
 	
@@ -39,6 +39,8 @@ public class LocationServer extends NanoHTTPD
 	private NanoHTTPD.Response getPicture() {
 		byte[] data = MainActivity.getPicture();
 		MainActivity.setSensorRequested();
+		if(data==null)
+			return getAssetResource("blankjpg","image/jpeg");
 		return new Response(Response.Status.OK,"image/jpeg", new ByteArrayInputStream(data));
 	}
 	
@@ -75,6 +77,12 @@ public class LocationServer extends NanoHTTPD
 			e.printStackTrace();
 			return new Response(Response.Status.INTERNAL_ERROR, MIME_HTML, String.format("Failed to build data to send, '%1$s'", e.getMessage()));
 		}
+	}
+	
+	private static Response getRedirect(String uri) {
+		Response r = new Response(Response.Status.REDIRECT,MIME_PLAINTEXT,"redirect to "+ uri);
+		r.addHeader("location",uri);
+		return r;
 	}
 	
 }
