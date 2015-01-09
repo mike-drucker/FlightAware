@@ -17,6 +17,8 @@ public class FlightCameraHost extends SimpleCameraHost
 		super(context);
 		this.context = context;
 	}
+	
+	private boolean debugInfoPrinted = false;
 
 	@Override
 	public Camera.Parameters adjustPictureParameters(PictureTransaction xact, Camera.Parameters parameters)
@@ -24,7 +26,7 @@ public class FlightCameraHost extends SimpleCameraHost
 		// TODO: Implement this method
 	    List<Camera.Size> sizes = parameters.getSupportedPictureSizes();
 		for(Camera.Size size : sizes) {
-			System.err.println("Supported Size: " + size.width + "×" + size.height);
+			if(!debugInfoPrinted) {System.err.println("Supported Size: " + size.width + "×" + size.height);}
 			parameters.setPictureSize(size.width, size.height);
 			if(size.width < 320)
 				break;
@@ -34,22 +36,30 @@ public class FlightCameraHost extends SimpleCameraHost
 			parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
 		else if(focusModes.contains("fixed"))
 			parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_FIXED);
-		for (int i=0;i<focusModes.size();i++){
-			System.err.println("Supported Focus Modes: " + focusModes.get(i));         
+		
+		if(!debugInfoPrinted) {
+			for (int i=0;i<focusModes.size();i++){
+				System.err.println("Supported Focus Modes: " + focusModes.get(i));         
+			}
 		}
 		//use lowest supported preview framerate
 		List<int[]> fpsRanges = parameters.getSupportedPreviewFpsRange();
 		//parameters.setPreviewFrameRate(fpsRanges.get(Camera.Parameters.PREVIEW_FPS_MIN_INDEX)[0]);
-		for (int i=0;i<fpsRanges.size();i++){
-			System.err.println("Supported Preview Frame Rates: " + fpsRanges.get(i)[0] +","+fpsRanges.get(i)[1]);         
+		if(!debugInfoPrinted) {
+			for (int i=0;i<fpsRanges.size();i++){
+				System.err.println("Supported Preview Frame Rates: " + fpsRanges.get(i)[0] +","+fpsRanges.get(i)[1]);         
+			}
 		}
 		List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
-		for (int i=0;i<previewSizes.size();i++){
-			System.err.println("Supported Preview Sizes: " + previewSizes.get(i).width + "×" +previewSizes.get(i).width);         
+		if(!debugInfoPrinted) {
+			for (int i=0;i<previewSizes.size();i++){
+				System.err.println("Supported Preview Sizes: " + previewSizes.get(i).width + "×" +previewSizes.get(i).width);         
+			}
 		}
 		parameters.setPreviewSize(previewSizes.get(previewSizes.size()-1).width, previewSizes.get(previewSizes.size()-1).height);
 		parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
 		parameters.setJpegQuality(CameraProfile.QUALITY_LOW);
+		debugInfoPrinted = true;
 		return super.adjustPictureParameters(xact, parameters);
 	}
 
