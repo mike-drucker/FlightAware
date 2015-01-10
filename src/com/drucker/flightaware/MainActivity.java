@@ -18,6 +18,7 @@ public class MainActivity extends Activity
 {
 	
 	private final static String TAG = "MainActivity";
+	private final static String PREFS_NAME = "MyPreferences";
 	private final static String DIRECTIONS[] = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
 	private final static long SENSOR_SHUTDOWN_TIMEOUT = 1000 * 60 * 5; //5 min
 	private final static long PICTURE_INTERVAL = 1000 * 1 * 1; //1 second
@@ -34,7 +35,7 @@ public class MainActivity extends Activity
 	private static Sensor geomagneticSensor = null;
 	private static Sensor accelerometerSensor = null;
 	private static Sensor pressureSensor = null;
-	private static Timer cameraTimer = null;
+	private static Timer timer = null;
     private final static SensorStatus s = new SensorStatus();
 	private static SensorStatus home;
 	private static float gForce = 0;
@@ -120,7 +121,7 @@ public class MainActivity extends Activity
 	SensorEventListener onSensorEventChange = new SensorEventListener() {
 		float[] gravity;
 		float[] geomagnetic;
-		public void onAccuracyChanged(Sensor sensor, int accuracy) {}
+		public void onAccuracyChanged(Sensor sensor, int accuracy) {System.err.println("Accuracy Change: "+ accuracy);}
 		public void onSensorChanged(SensorEvent event) {
 			if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 				gravity = event.values;
@@ -197,27 +198,22 @@ public class MainActivity extends Activity
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		System.err.println("---------------------------------------");
-		fragment = (CameraFragment) this.getFragmentManager().findFragmentById(R.id.camera_preview);
-		cameraTimer = new Timer();
-		Button button = (Button) findViewById(R.id.button);
+		//load home if saved
+		loadSettings();
+		//setup home button
+		Button button = (Button) findViewById(R.id.setHome);
 		button.setOnClickListener(new View.OnClickListener(){
-				public void onClick(View v) {
-					try {
-						fragment.takePicture();
-					}catch(RuntimeException e){e.printStackTrace();System.err.println(e.getMessage());System.out.println("ok");}
-				}
+			public void onClick(View v) {
+				setHome();
+			}
 		});
-		button = (Button) findViewById(R.id.setHome);
-		button.setOnClickListener(new View.OnClickListener(){
-				public void onClick(View v) {
-				    setHome();
-				}
-			});
+		//setup camera
+		fragment = (CameraFragment) this.getFragmentManager().findFragmentById(R.id.camera_preview);
+		timer = new Timer();
 		//start camera timer
-		cameraTimer.scheduleAtFixedRate(cameraTimerTask,0,PICTURE_INTERVAL);
+		timer.scheduleAtFixedRate(cameraTimerTask,0,PICTURE_INTERVAL);
 		//start sensor timer
-		cameraTimer.scheduleAtFixedRate(sensorCheckTimer,0,SENSOR_INTERVAL);
+		timer.scheduleAtFixedRate(sensorCheckTimer,0,SENSOR_INTERVAL);
 		//setup http server
 		server= new LocationServer(this);
 		try {
@@ -227,7 +223,6 @@ public class MainActivity extends Activity
 			Log.d(TAG,"IOException",e);
 			e.printStackTrace();
 		}
-		
 		//setup gps
 		locationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 0, onLocationChange,Looper.myLooper());
@@ -275,9 +270,48 @@ public class MainActivity extends Activity
 			return;
 		locationManager.removeUpdates(onLocationChange);
 		sensorManager.unregisterListener(onSensorEventChange);
-		//camraTimerTask.cancel();
+	}
+	
+	private void loadSettings() {
+		SharedPreferences p = getSharedPreferences(PREFS_NAME, 0);
+		Location l = new Location((String)null);
+		l.setAltitude(p.getFloat("alt",0));
+		l.setLongitude(p.getFloat("lon",0));
+		l.setLatitude(p.getFloat("lat",0));
+		if(l.getLatitude() != 0 && l.getLongitude() != 0) {
+			home = new SensorStatus();
+			home.location = l;
+			home.barometricPressure = p.getFloat("ber",1000);
+			home.azimuthDegrees = p.getFloat("azi",0);
+			home.pitchDegrees = p.getFloat("pch",0);
+			home.rollDegrees = p.getFloat("rol",0);
+		}
+	}
+	
+	private void saveSettings() {
+		SharedPreferences p = getSharedPreferences(PREFS_NAME, 0);
+		SharedPreferences.Editor editor = p.edit();
+		if(home != null) {
+			editor.putFloat("lat",(float)home.location.getLatitude());
+			editor.putFloat("lon",(float)home.location.getLongitude());
+			editor.putFloat("alt",(float)home.location.getAltitude());
+			editor.putFloat("ber",home.barometricPressure);
+			editor.putFloat("pch",home.pitchDegrees);
+			editor.putFloat("rol",home.rollDegrees);
+			editor.putFloat("azi",home.azimuthDegrees);
+		}
+		editor.apply();
 	}
 
+	@Override
+	protected void onStop()
+	{
+		super.onStop();
+		saveSettings(); 
+	}
+
+	
+	
 	@Override
 	public void onDestroy() {
 		server.stop();

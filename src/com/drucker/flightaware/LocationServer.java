@@ -6,6 +6,7 @@ import android.util.*;
 import android.content.res.*;
 import java.io.*;
 import android.content.*;
+import android.hardware.*;
 
 public class LocationServer extends NanoHTTPD
 {
@@ -71,6 +72,12 @@ public class LocationServer extends NanoHTTPD
 			obj.accumulate("alt", location.getAltitude());
 			obj.accumulate("ber", location.getBearing());
 			obj.accumulate("spd", location.getSpeed());
+			SensorStatus home = MainActivity.getHome();
+			if(home != null && home.location != null) {
+				obj.accumulate("h_ber",home.location.bearingTo(location));
+				obj.accumulate("h_dst",home.location.distanceTo(location));
+				obj.accumulate("h_alt_ber",SensorManager.getAltitude(home.barometricPressure,barometricPressure));
+			}
 			return allowCrossSitrScripting(new Response(obj.toString()));
 		}
 		catch (JSONException e) {
