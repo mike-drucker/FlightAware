@@ -9,9 +9,14 @@ public class SensorStatus extends Object {
 	public float barometricPressure = 0;
 
 	@Override
-	public Object clone() throws CloneNotSupportedException {
-		return super.clone();
+	public Object clone() {
+		SensorStatus copy = new SensorStatus();
+		copy.azimuthDegrees = this.azimuthDegrees;
+		copy.barometricPressure = this.barometricPressure;
+		copy.location = new Location(this.location);
+		copy.pitchDegrees = this.pitchDegrees;
+		copy.rollDegrees = this.rollDegrees;
+		return copy;
 	}
-	
 	
 }

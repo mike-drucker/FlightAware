@@ -10,11 +10,15 @@ import android.widget.*;
 import com.commonsware.cwac.camera.*;
 import java.io.*;
 import java.util.*;
+import android.text.*;
+import android.content.*;
+import android.graphics.*;
 
 public class MainActivity extends Activity
 {
 	
 	private final static String TAG = "MainActivity";
+	private final static String DIRECTIONS[] = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
 	private final static long SENSOR_SHUTDOWN_TIMEOUT = 1000 * 60 * 5; //5 min
 	private final static long PICTURE_INTERVAL = 1000 * 1 * 1; //1 second
 	private final static long SENSOR_INTERVAL = 1000 * 5 *1; //5 seconds
@@ -33,32 +37,17 @@ public class MainActivity extends Activity
 	private static Timer cameraTimer = null;
     private final static SensorStatus s = new SensorStatus();
 	private static SensorStatus home;
-	
 	private static float gForce = 0;
-	
-	
-	
-	com.commonsware.cwac.camera.CameraFragment fragment = null;
-	
-	public static Location getLocation() {
-		return s.location;
-	}
-	
-	public static float getAzimuthDegrees() {
-		return s.azimuthDegrees;
-	}
-	
-	public static float getRollDegrees() {
-		return s.rollDegrees;
-	}
-	
-	public static float getPitchDegrees() {
-		return s.pitchDegrees;
-	}
+	CameraFragment fragment = null;
+
+	public static SensorStatus getHome() {return home;}
+	public static Location getLocation() {return s.location;}
+	public static float getAzimuthDegrees() {return s.azimuthDegrees;}
+	public static float getRollDegrees() {return s.rollDegrees;}
+	public static float getPitchDegrees() {return s.pitchDegrees;}
 	
 	public static String getDirection() {
-		String directions[] = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
-		return directions[(int)Math.round(( ((double)s.azimuthDegrees % 360) / 45)) % 8];
+		return DIRECTIONS[(int)Math.round(( ((double)s.azimuthDegrees % 360) / 45)) % 8];
 	}
 	
 	public static float getGForce() {
@@ -113,7 +102,8 @@ public class MainActivity extends Activity
 	
 	LocationListener onLocationChange= new LocationListener() {
 		public void onLocationChanged(Location fix) {
-			System.err.println("onLocationChanged");
+			Button button = (Button) findViewById(R.id.setHome);
+			button.setEnabled(true);
 			s.location = fix;
 			if(sensorsRunning && shouldSensorsStop()) {
 				synchronized(sensorSetupSemaphore){
@@ -124,7 +114,7 @@ public class MainActivity extends Activity
 		}
 		public void onProviderDisabled(String provider) {}
 		public void onProviderEnabled(String provider) {}
-		public void onStatusChanged(String provider, int status, Bundle extras) {System.err.println("gps");}
+		public void onStatusChanged(String provider, int status, Bundle extras) {}
 	};
 	
 	SensorEventListener onSensorEventChange = new SensorEventListener() {
@@ -175,12 +165,29 @@ public class MainActivity extends Activity
 
 	private void setHome()
 	{
-	    try
-		{
-			home = (SensorStatus) s.clone();
+		if(home == null) {
+			internalSetHome();
+			return;
 		}
-		catch (CloneNotSupportedException e)
-		{/*do nothing*/}
+		AlertDialog.Builder alert = new AlertDialog.Builder(this);
+		alert.setCancelable(true);
+		alert.setTitle("Change home. Are you sure?");
+		alert.setNegativeButton("No",new DialogInterface.OnClickListener() { public void onClick(DialogInterface dialog, int whichButton) {}});
+		alert.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+										public void onClick(DialogInterface dialog, int whichButton) {
+											if(whichButton==AlertDialog.BUTTON_POSITIVE) internalSetHome();
+										}
+									});
+		AlertDialog dialog=alert.show();
+	}
+	
+	private void internalSetHome() {
+		home = (SensorStatus) s.clone();
+		Button button = (Button) findViewById(R.id.setHome);
+		if(home != null) 
+			button.setBackgroundColor(Color.RED);
+		else
+			button.setBackgroundColor(Color.GREEN);
 	}
 	
 	

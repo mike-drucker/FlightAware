@@ -21,6 +21,7 @@ public class LocationServer extends NanoHTTPD
 		switch(session.getUri())   {
 			case "/": case "/index": case "/index.html": case "/index.htm": return getAssetResource("index","text/html");
 			case "/data": return getData();
+			case "/home": return getHome();
 			case "/picture": return getPicture();
 			case "/jquery" : return getAssetResource("jquery","application/javascript");
 			default: return getRedirect("/");
@@ -70,6 +71,28 @@ public class LocationServer extends NanoHTTPD
 			obj.accumulate("alt", location.getAltitude());
 			obj.accumulate("ber", location.getBearing());
 			obj.accumulate("spd", location.getSpeed());
+			return allowCrossSitrScripting(new Response(obj.toString()));
+		}
+		catch (JSONException e) {
+			Log.d(TAG,"JSONException",e);
+			e.printStackTrace();
+			return new Response(Response.Status.INTERNAL_ERROR, MIME_HTML, String.format("Failed to build data to send, '%1$s'", e.getMessage()));
+		}
+	}
+	
+	private Response getHome() {
+		JSONObject obj = new JSONObject();
+		try {
+			SensorStatus home = MainActivity.getHome();
+			if(home != null) {
+				obj.accumulate("ber", home.barometricPressure);
+				obj.accumulate("lat",home.location.getLatitude());
+				obj.accumulate("lon", home.location.getLongitude());
+				obj.accumulate("alt", home.location.getAltitude());
+			}
+			else {
+				obj.accumulate("homeErr", "No Home Set");
+			}
 			return allowCrossSitrScripting(new Response(obj.toString()));
 		}
 		catch (JSONException e) {
