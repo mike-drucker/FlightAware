@@ -7,6 +7,8 @@ import android.hardware.Camera.*;
 import android.hardware.*;
 import java.util.*;
 import android.media.*;
+import android.annotation.*;
+import android.os.*;
 
 public class FlightCameraHost extends SimpleCameraHost
 {
@@ -18,15 +20,14 @@ public class FlightCameraHost extends SimpleCameraHost
 		this.context = context;
 	}
 	
-	private boolean debugInfoPrinted = false;
+	private boolean printDebug = true;
 
 	@Override
-	public Camera.Parameters adjustPictureParameters(PictureTransaction xact, Camera.Parameters parameters)
-	{
+	public Camera.Parameters adjustPictureParameters(PictureTransaction xact, Camera.Parameters parameters) {
 		// TODO: Implement this method
 	    List<Camera.Size> sizes = parameters.getSupportedPictureSizes();
 		for(Camera.Size size : sizes) {
-			if(!debugInfoPrinted) {System.err.println("Supported Size: " + size.width + "×" + size.height);}
+			if(!printDebug) {System.err.println("Supported Size: " + size.width + "×" + size.height);}
 			parameters.setPictureSize(size.width, size.height);
 			if(size.width < 320)
 				break;
@@ -37,7 +38,7 @@ public class FlightCameraHost extends SimpleCameraHost
 		else if(focusModes.contains("fixed"))
 			parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_FIXED);
 		
-		if(!debugInfoPrinted) {
+		if(!printDebug) {
 			for (int i=0;i<focusModes.size();i++){
 				System.err.println("Supported Focus Modes: " + focusModes.get(i));         
 			}
@@ -45,13 +46,13 @@ public class FlightCameraHost extends SimpleCameraHost
 		//use lowest supported preview framerate
 		List<int[]> fpsRanges = parameters.getSupportedPreviewFpsRange();
 		//parameters.setPreviewFrameRate(fpsRanges.get(Camera.Parameters.PREVIEW_FPS_MIN_INDEX)[0]);
-		if(!debugInfoPrinted) {
+		if(!printDebug) {
 			for (int i=0;i<fpsRanges.size();i++){
 				System.err.println("Supported Preview Frame Rates: " + fpsRanges.get(i)[0] +","+fpsRanges.get(i)[1]);         
 			}
 		}
 		List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
-		if(!debugInfoPrinted) {
+		if(!printDebug) {
 			for (int i=0;i<previewSizes.size();i++){
 				System.err.println("Supported Preview Sizes: " + previewSizes.get(i).width + "×" +previewSizes.get(i).width);         
 			}
@@ -59,16 +60,13 @@ public class FlightCameraHost extends SimpleCameraHost
 		parameters.setPreviewSize(previewSizes.get(previewSizes.size()-1).width, previewSizes.get(previewSizes.size()-1).height);
 		parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
 		parameters.setJpegQuality(CameraProfile.QUALITY_LOW);
-		debugInfoPrinted = true;
+		printDebug = true;
 		return super.adjustPictureParameters(xact, parameters);
 	}
 
-	
 
 	@Override
-	public void saveImage(PictureTransaction xact, byte[] image)
-	{
-		//super.saveImage(xact, image);
+	public void saveImage(PictureTransaction xact, byte[] image) {
 		data = image;
 	}
 }

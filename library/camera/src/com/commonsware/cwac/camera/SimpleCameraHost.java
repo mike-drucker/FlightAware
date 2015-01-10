@@ -232,7 +232,7 @@ public class SimpleCameraHost implements CameraHost {
   public void onAutoFocus(boolean success, Camera camera) {
     if (success
         && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-      new MediaActionSound().play(MediaActionSound.FOCUS_COMPLETE);
+      //new MediaActionSound().play(MediaActionSound.FOCUS_COMPLETE);
     }
   }
 

@@ -4,27 +4,21 @@
     android:layout_height="fill_parent"
     android:gravity="center"
     android:orientation="vertical" >
-    <!--<SurfaceView
-        android:layout_width="400px"
-        android:layout_height="600px"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true"
-        android:id="@+id/surfaceView" />-->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/hello"
-		android:id="@+id/textView"/>
-	<TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/hello"
-		android:id="@+id/sensorTextView"/>
-	<Button
-		android:layout_width="300px"
-		android:layout_height="110px"
-		android:text="@string/hello"
-		android:id="@+id/button"/>
+    <LinearLayout 
+		android:orientation="horizontal" 
+		android:layout_width="fill_parent"
+		android:layout_height="20pt">
+		<Button
+			android:layout_width="300px"
+			android:layout_height="110px"
+			android:text="@string/snap"
+			android:id="@+id/button"/>
+		<Button
+			android:layout_width="300px"
+			android:layout_height="110px"
+			android:text="@string/home"
+			android:id="@+id/setHome"/>
+	</LinearLayout>
 	<fragment
 		android:id="@+id/camera_preview"
 		android:name="com.drucker.flightaware.FlightCameraFragment"

@@ -1,18 +1,15 @@
 package com.drucker.flightaware;
 
 import android.app.*;
+import android.hardware.*;
+import android.location.*;
 import android.os.*;
+import android.util.*;
 import android.view.*;
 import android.widget.*;
-import android.location.*;
-import android.util.*;
-import java.io.*;
-import android.hardware.*;
-import android.media.*;
-import java.util.*;
-import android.widget.TableRow.*;
 import com.commonsware.cwac.camera.*;
-//import android.graphics.*;
+import java.io.*;
+import java.util.*;
 
 public class MainActivity extends Activity
 {
@@ -27,46 +24,41 @@ public class MainActivity extends Activity
 	
 
 	private static LocationManager locationManager=null;
-	private static Location location = null;
+	
 	private static LocationServer server = null;
 	private static SensorManager sensorManager = null;
 	private static Sensor geomagneticSensor = null;
 	private static Sensor accelerometerSensor = null;
 	private static Sensor pressureSensor = null;
-	//private static Camera camera = null;
 	private static Timer cameraTimer = null;
-	private static float azimuthDegrees = 0;
-	private static float pitchDegrees = 0;
-	private static float rollDegrees = 0;
-	private static float gForce = 0;
-	private static float barometricPressure = 0;
-	//private static byte[] picture = null;
+    private final static SensorStatus s = new SensorStatus();
+	private static SensorStatus home;
 	
-	//private SurfaceView view = null;
-	//private SurfaceHolder viewHolder = null;
-	private TextView sensorTextView = null;
+	private static float gForce = 0;
+	
+	
 	
 	com.commonsware.cwac.camera.CameraFragment fragment = null;
 	
 	public static Location getLocation() {
-		return location;
+		return s.location;
 	}
 	
 	public static float getAzimuthDegrees() {
-		return azimuthDegrees;
+		return s.azimuthDegrees;
 	}
 	
 	public static float getRollDegrees() {
-		return rollDegrees;
+		return s.rollDegrees;
 	}
 	
 	public static float getPitchDegrees() {
-		return pitchDegrees;
+		return s.pitchDegrees;
 	}
 	
 	public static String getDirection() {
 		String directions[] = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
-		return directions[(int)Math.round(( ((double)azimuthDegrees % 360) / 45)) % 8];
+		return directions[(int)Math.round(( ((double)s.azimuthDegrees % 360) / 45)) % 8];
 	}
 	
 	public static float getGForce() {
@@ -80,7 +72,7 @@ public class MainActivity extends Activity
 	}
 	
 	public static float getBarometricPressure() {
-		return barometricPressure;
+		return s.barometricPressure;
 	}
 	
 	public static void setSensorRequested() {
@@ -109,7 +101,6 @@ public class MainActivity extends Activity
 		public void run() {
 			if( shouldSensorsStop() || !sensorsRunning)
 				return;
-			//camera.takePicture(null,null,null,onPictureCallback);
 			try
 			{
 				fragment.takePicture();
@@ -119,18 +110,11 @@ public class MainActivity extends Activity
 		}
 	};
 	
-//	Camera.PictureCallback onPictureCallback = new Camera.PictureCallback() {
-//		public void onPictureTaken(byte[] data, Camera camera) {
-//			picture = data;
-//			//System.out.println("onPictureCallback");
-//			camera.startPreview();
-//			cameraTakingPicture = false;
-//		}
-//	};
 	
 	LocationListener onLocationChange= new LocationListener() {
 		public void onLocationChanged(Location fix) {
-			location = fix;
+			System.err.println("onLocationChanged");
+			s.location = fix;
 			if(sensorsRunning && shouldSensorsStop()) {
 				synchronized(sensorSetupSemaphore){
 					stopSensors();
@@ -140,7 +124,7 @@ public class MainActivity extends Activity
 		}
 		public void onProviderDisabled(String provider) {}
 		public void onProviderEnabled(String provider) {}
-		public void onStatusChanged(String provider, int status, Bundle extras) {}
+		public void onStatusChanged(String provider, int status, Bundle extras) {System.err.println("gps");}
 	};
 	
 	SensorEventListener onSensorEventChange = new SensorEventListener() {
@@ -158,7 +142,7 @@ public class MainActivity extends Activity
 			if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
 				geomagnetic = event.values;
 			if (event.sensor.getType() == Sensor.TYPE_PRESSURE)
-				barometricPressure = event.values[0];
+				s.barometricPressure = event.values[0];
 			if ((event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD || event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) && gravity != null && geomagnetic != null) {
 				float R[] = new float[9];
 				float I[] = new float[9];
@@ -166,9 +150,9 @@ public class MainActivity extends Activity
 				if (success) {
 					float orientation[] = new float[3];
 					SensorManager.getOrientation(R, orientation);
-					azimuthDegrees = calculateAzimuthDegrees(orientation[0]);
-					pitchDegrees = (float) Math.toDegrees(orientation[1]);
-					rollDegrees = (float) Math.toDegrees(orientation[2]);
+					s.azimuthDegrees = calculateAzimuthDegrees(orientation[0]);
+					s.pitchDegrees = (float) Math.toDegrees(orientation[1]);
+					s.rollDegrees = (float) Math.toDegrees(orientation[2]);
 				}
 			}
 			if(sensorsRunning && shouldSensorsStop()) {
@@ -189,6 +173,17 @@ public class MainActivity extends Activity
 		return azimuthRadians;
 	}
 
+	private void setHome()
+	{
+	    try
+		{
+			home = (SensorStatus) s.clone();
+		}
+		catch (CloneNotSupportedException e)
+		{/*do nothing*/}
+	}
+	
+	
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState)
@@ -196,27 +191,22 @@ public class MainActivity extends Activity
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 		System.err.println("---------------------------------------");
-		//fragment = (CameraFragment) this.getFragmentManager().beginTransaction().
-		sensorTextView = (TextView) findViewById(R.id.sensorTextView);
 		fragment = (CameraFragment) this.getFragmentManager().findFragmentById(R.id.camera_preview);
 		cameraTimer = new Timer();
-		final Button button = (Button) findViewById(R.id.button);
+		Button button = (Button) findViewById(R.id.button);
 		button.setOnClickListener(new View.OnClickListener(){
 				public void onClick(View v) {
 					try {
-						//camera.takePicture(null,null,null,onPictureCallback);
 						fragment.takePicture();
 					}catch(RuntimeException e){e.printStackTrace();System.err.println(e.getMessage());System.out.println("ok");}
 				}
 		});
-		//setup camera
-		setupCamera();
-		//viewHolder = view.getHolder();
-		//viewHolder.addCallback(this);
-		//viewHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-		
-		//camera.takePicture(null,null,null,onPictureCallback);
-		
+		button = (Button) findViewById(R.id.setHome);
+		button.setOnClickListener(new View.OnClickListener(){
+				public void onClick(View v) {
+				    setHome();
+				}
+			});
 		//start camera timer
 		cameraTimer.scheduleAtFixedRate(cameraTimerTask,0,PICTURE_INTERVAL);
 		//start sensor timer
@@ -230,6 +220,10 @@ public class MainActivity extends Activity
 			Log.d(TAG,"IOException",e);
 			e.printStackTrace();
 		}
+		
+		//setup gps
+		locationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
+		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 0, onLocationChange,Looper.myLooper());
 	}
 	
 	private String getCameraSetup()
@@ -254,50 +248,6 @@ public class MainActivity extends Activity
 //		sb.append(p.getPreviewSize().height);
 		return sb.toString();
 	}
-
-	private void setupCamera()
-	{
-//		camera = Camera.open(0);
-//		Camera.Parameters parameters = camera.getParameters();
-//		List<Camera.Size> sizes = parameters.getSupportedPictureSizes();
-//		for(Camera.Size size : sizes) {
-//			System.err.println("Supported Size: " + size.width + "×" + size.height);
-//			parameters.setPictureSize(size.width, size.height);
-//			if(size.width < 320)
-//				break;
-//		}
-//	    List<String> focusModes = parameters.getSupportedFocusModes();
-//		if(focusModes.contains("infinity"))
-//			parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
-//		else if(focusModes.contains("fixed"))
-//			parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_FIXED);
-//		for (int i=0;i<focusModes.size();i++){
-//			System.err.println("Supported Focus Modes: " + focusModes.get(i));         
-//		}
-//		//use lowest supported preview framerate
-//		List<int[]> fpsRanges = parameters.getSupportedPreviewFpsRange();
-//		parameters.setPreviewFrameRate(fpsRanges.get(Camera.Parameters.PREVIEW_FPS_MIN_INDEX)[0]);
-//		for (int i=0;i<fpsRanges.size();i++){
-//			System.err.println("Supported Preview Frame Rates: " + fpsRanges.get(i)[0] +","+fpsRanges.get(i)[1]);         
-//		}
-//		List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
-//		for (int i=0;i<previewSizes.size();i++){
-//			System.err.println("Supported Preview Sizes: " + previewSizes.get(i).width + "×" +previewSizes.get(i).width);         
-//		}
-//		parameters.setPreviewSize(previewSizes.get(previewSizes.size()-1).width, previewSizes.get(previewSizes.size()-1).height);
-//		parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-//		parameters.setJpegQuality(CameraProfile.QUALITY_LOW);
-//		camera.setParameters(parameters);
-//		view = (SurfaceView) findViewById( R.id.surfaceView);
-//		ViewGroup.LayoutParams p = view.getLayoutParams();
-//		p.height = previewSizes.get(previewSizes.size()-1).height;
-//		p.width = previewSizes.get(previewSizes.size()-1).width;
-//		view.setLayoutParams(p);
-//		//view = new SurfaceView(this);
-//		//view.setVisibility(view.INVISIBLE);
-//		
-//		sensorTextView.setText(getCameraSetup());
-	}
 	
 	private void startSensors() {
 		if(sensorsRunning)
@@ -310,11 +260,6 @@ public class MainActivity extends Activity
 		sensorManager.registerListener(onSensorEventChange, accelerometerSensor, SensorManager.SENSOR_DELAY_GAME);
 		sensorManager.registerListener(onSensorEventChange, geomagneticSensor, SensorManager.SENSOR_DELAY_GAME);
 		sensorManager.registerListener(onSensorEventChange, pressureSensor, SensorManager.SENSOR_DELAY_GAME);
-		//setup gps
-		Looper.prepare();
-		locationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
-		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 10, onLocationChange);
-		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 10, onLocationChange);
 	}
 	
 	
@@ -324,7 +269,6 @@ public class MainActivity extends Activity
 		locationManager.removeUpdates(onLocationChange);
 		sensorManager.unregisterListener(onSensorEventChange);
 		//camraTimerTask.cancel();
-		//camera.release();
 	}
 
 	@Override

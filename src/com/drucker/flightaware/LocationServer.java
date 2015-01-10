@@ -66,7 +66,7 @@ public class LocationServer extends NanoHTTPD
 				return allowCrossSitrScripting(new Response(obj.toString()));
 			}
 			obj.accumulate("lat",location.getLatitude());
-			obj.accumulate("lon", location.getLatitude());
+			obj.accumulate("lon", location.getLongitude());
 			obj.accumulate("alt", location.getAltitude());
 			obj.accumulate("ber", location.getBearing());
 			obj.accumulate("spd", location.getSpeed());
