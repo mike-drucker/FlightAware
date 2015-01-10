@@ -2,11 +2,16 @@
 <head>
     <title>HUD</title>
     <style type="text/css">
-        .canvas { position:fixed;top:60px;left:10px;}
+        .canvas { border:1px solid #d3d3d3; position:absolute;top:0px;left:0px;}
+        .debug { font-size: 15px; font-family: Arial; }
     </style>
-    <script type="text/javascript" src="/jquery" ></script>
- <script type="text/javascript">
+    <script type="text/javascript" src="jquery" ></script>
+    <script type="text/javascript">
         var picture = null;
+        var colors = ["white", "lawngreen", "aqua", "violet"];
+        var color = "white";
+        var lastData = null;
+        var d = true;
         window.onerror = function (msg, url, linenumber) {
             alert('Error message: ' + msg + '\nURL: ' + url + '\nLine Number: ' + linenumber);
             $(".jsError").html('Error message: ' + msg + '\nURL: ' + url + '\nLine Number: ' + linenumber);
@@ -14,16 +19,20 @@
         }
         
         function picWorker() {
-        	var img = $("<img id='picStore' style='display:none' />").attr('src', '/picture?t=' + (Date.now()/1000))
-    		.load(function() {
-        		if (!this.complete || typeof this.naturalWidth == "undefined" || this.naturalWidth == 0) {
-            		console.log('broken image!');
-        		} else {
-        			$("#something").html("");
-            		$("#something").append(img);
-        		}
-    		});
-    		setTimeout(picWorker, 1000);
+            var img = $("<img id='picStore' style='display:none' />").attr('src', '/picture?t=' + (Date.now() / 1000))
+    		.load(function () {
+    		    if (!this.complete || typeof this.naturalWidth == "undefined" || this.naturalWidth == 0) {
+    		        setTimeout(picWorker, 1000);
+    		        console.log('broken image!');
+    		    } else {
+    		        $("#something").html("");
+    		        $("#something").append(img);
+    		        setTimeout(picWorker, 1000);
+    		    }
+    		})
+            .error(function () {
+                setTimeout(picWorker, 1000);
+            });
         }
         
         function worker() {
@@ -49,44 +58,76 @@
             });
         };
         $(document).ready(function () {
+            resizeHud();
+            $(".canvas").click(function () { cycleColor(); });
             setTimeout(worker, 10);
             setTimeout(picWorker, 500);
         });
+
+        $(window).resize(function () {
+            resizeHud();
+        });
+
+        function cycleColor() {
+            var pos = $.inArray(color, colors);
+            pos += 1;
+            if (pos >= colors.length)
+                pos = 0;
+            color = colors[pos];
+        }
+
+        function resizeHud() {
+            var top = 0;
+            if (d) top = 40;
+            $(".debug").toggle(d);
+            $(".canvas").css("top", top + "px");
+            $(".canvas").attr("width", $(window).innerWidth() - 2);
+            $(".canvas").attr("height", $(window).innerHeight() - top - 2);
+        }
+
+		
         var canvasFlip = false;
         function drawHud(data) {
+            lastData = data;
             try {
-            var oldCanvas = $(".canvas")[canvasFlip ? 1 : 0];
-            var canvas = $(".canvas")[canvasFlip ? 0 : 1];
-            var context = canvas.getContext('2d');
-            var image =document.getElementById('picStore');
-            if(image !== null)
-                context.drawImage(image,0,0,canvas.width,canvas.height);
-            context.moveTo(10, canvas.height / 2);
-            context.lineTo(canvas.width - 10, canvas.height / 2);
-            context.beginPath();
-            context.arc(canvas.width / 2, canvas.height / 2 + (data.pch * 2), 10, 0, 2 * Math.PI);
-            context.stroke();
-            context.moveTo(canvas.width / 2, canvas.height / 2);
-            context.lineTo(canvas.width / 2 + 100 * Math.cos(data.rol*(Math.PI/180)),
-                           canvas.height / 2 + 100 * Math.sin(data.rol*(Math.PI/180)));
-            context.lineTo(canvas.width / 2 - 100 * Math.cos(data.rol*(Math.PI/180)),
-                           canvas.height / 2 - 100 * Math.sin(data.rol*(Math.PI/180)));
-            context.stroke();
-            if(data.gpsErr !== null) {
-            	context.font = "15px Arial";
-            	context.fillText(data.dir + " "+ data.azi+"\xB0", canvas.width / 2 - 40, 15);
-            	context.font = "10px Arial";
-            	context.fillText(data.alt+" m", 10, canvas.height / 2 + 30);
-            	context.fillText(data.spd + " m/s", 10, canvas.height / 2 + 40);
-            }
-            //if(picture !== null) {
-            //    canvas.drawImage(picture,0,0);
-            //}
-            $(canvas).css("visibility","visible");
-            $(oldCanvas).css("visibility","hidden");
-            context = oldCanvas.getContext('2d');
-            context.clearRect(0, 0, oldCanvas.width, oldCanvas.height);
-            canvasFlip = (!canvasFlip);
+                var oldCanvas = $(".canvas")[canvasFlip ? 1 : 0];
+                var canvas = $(".canvas")[canvasFlip ? 0 : 1];
+                var context = canvas.getContext('2d');
+                context.fillStyle = color;
+                var image =document.getElementById('picStore');
+                if(image !== null)
+                    context.drawImage(image,0,0,canvas.width,canvas.height);
+                context.moveTo(10, canvas.height / 2);
+                context.lineTo(canvas.width - 10, canvas.height / 2);
+                context.beginPath();
+                context.arc(canvas.width / 2, canvas.height / 2 + (data.pch * 2), 10, 0, 2 * Math.PI);
+                context.strokeStyle = color;
+                context.lineWidth = 2;
+                context.stroke();
+                context.moveTo(canvas.width / 2, canvas.height / 2);
+                context.lineTo(canvas.width / 2 + 100 * Math.cos(data.rol*(Math.PI/180)),
+                               canvas.height / 2 + 100 * Math.sin(data.rol*(Math.PI/180)));
+                context.lineTo(canvas.width / 2 - 100 * Math.cos(data.rol*(Math.PI/180)),
+                               canvas.height / 2 - 100 * Math.sin(data.rol*(Math.PI/180)));
+                context.stroke();
+                context.moveTo(canvas.width - 50, canvas.height / 2 + 70);
+                context.lineTo(canvas.width - 50, canvas.height / 2 - 70);
+                context.moveTo(canvas.width - 75, canvas.height / 2 + 70);
+                context.lineTo(canvas.width - 25, canvas.height / 2 + 70);
+                context.stroke();
+                if(data.gpsErr !== null) {
+                    context.font = "Bold 15px Arial";
+            	    context.fillText(data.dir + " "+ Math.round(data.azi)+"\xB0", canvas.width / 2 - 40, 15);
+            	    context.font = "Bold 15px Arial";
+            	    context.fillText(Math.round(data.alt)+" m", 10, canvas.height / 2 + 30);
+            	    context.fillText(data.spd.toFixed(2) + " m/s", 10, canvas.height / 2 + 45);
+            	    context.fillText(data.h_alt_ber.toFixed(2) + "m", canvas.width - 75, canvas.height/2 + 85);
+                }
+                $(canvas).css("visibility","visible");
+                $(oldCanvas).css("visibility","hidden");
+                context = oldCanvas.getContext('2d');
+                context.clearRect(0, 0, oldCanvas.width, oldCanvas.height);
+                canvasFlip = (!canvasFlip);
             }
             catch(err){
             	alert(err);
@@ -95,12 +136,15 @@
     </script>
 </head>
 <body>
-	<span class="debug"></span>
-    <div class="errorData"></div><div class="errorStatus"></div><div class="errorMessage"></div><div class="jsError"></div>
-    <div class="result"></div>
-    <canvas class="canvas" width="600" height="400" style="border:1px solid #d3d3d3;" id="c1"></canvas>
-    <canvas class="canvas" width="600" height="400" style="border:1px solid #d3d3d3;visibility:hidden;" id="c2"></canvas>
+	<div class="debug">
+        <div class="errorData"></div>
+        <div class="errorStatus"></div>
+        <div class="errorMessage"></div>
+        <div class="jsError"></div>
+        <div class="result"></div>
+    </div>
+    <canvas class="canvas" id="c1"></canvas>
+    <canvas class="canvas" style="visibility:hidden;" id="c2"></canvas>
     <div id="something"></div>
-</body>
 </body>
 </html>
