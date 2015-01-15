@@ -102,7 +102,7 @@ public class MainActivity extends Activity {
 		}
 	};
 	
-	public void takeFullResolutionPicture() {
+	public static void takeFullResolutionPicture() {
 		fullResolutionPhoto = true;
 	}
 	
