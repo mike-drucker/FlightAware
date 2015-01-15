@@ -24,6 +24,7 @@ public class LocationServer extends NanoHTTPD
 			case "/data": return getData();
 			case "/home": return getHome();
 			case "/picture": return getPicture();
+			case "/takePicture": return takePicture();
 			case "/jquery" : return getAssetResource("jquery","application/javascript");
 			default: return getRedirect("/");
 		}
@@ -36,6 +37,11 @@ public class LocationServer extends NanoHTTPD
 		}
 		catch (IOException e) {e.printStackTrace();Log.d(TAG,"IOException",e);}
 		return null;
+	}
+	
+	private NanoHTTPD.Response takePicture(){
+		MainActivity.takeFullResolutionPicture();
+		return new Response("ok");
 	}
 	
 	private NanoHTTPD.Response getPicture() {

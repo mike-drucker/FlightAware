@@ -14,8 +14,7 @@ import android.text.*;
 import android.content.*;
 import android.graphics.*;
 
-public class MainActivity extends Activity
-{
+public class MainActivity extends Activity {
 	
 	private final static String TAG = "MainActivity";
 	private final static String PREFS_NAME = "MyPreferences";
@@ -31,6 +30,7 @@ public class MainActivity extends Activity
 	private static LocationManager locationManager=null;
 	
 	private static LocationServer server = null;
+	private static boolean fullResolutionPhoto = false;
 	private static SensorManager sensorManager = null;
 	private static Sensor geomagneticSensor = null;
 	private static Sensor accelerometerSensor = null;
@@ -40,6 +40,7 @@ public class MainActivity extends Activity
 	private static SensorStatus home;
 	private static float gForce = 0;
 	CameraFragment fragment = null;
+	
 
 	public static SensorStatus getHome() {return home;}
 	public static Location getLocation() {return s.location;}
@@ -93,13 +94,17 @@ public class MainActivity extends Activity
 				return;
 			try
 			{
-				fragment.takePicture();
+				
+				fragment.takePicture(false,true);
 			}
 			catch (IllegalStateException e)
 			{/*do nothing*/}
 		}
 	};
 	
+	public void takeFullResolutionPicture() {
+		fullResolutionPhoto = true;
+	}
 	
 	LocationListener onLocationChange= new LocationListener() {
 		public void onLocationChanged(Location fix) {
@@ -164,8 +169,7 @@ public class MainActivity extends Activity
 		return azimuthRadians;
 	}
 
-	private void setHome()
-	{
+	private void setHome() {
 		if(home == null) {
 			internalSetHome();
 			return;
@@ -194,8 +198,7 @@ public class MainActivity extends Activity
 	
 	/** Called when the activity is first created. */
 	@Override
-	public void onCreate(Bundle savedInstanceState)
-	{
+	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 		//load home if saved
@@ -228,8 +231,7 @@ public class MainActivity extends Activity
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,  100, 0, onLocationChange,Looper.myLooper());
 	}
 	
-	private String getCameraSetup()
-	{
+	private String getCameraSetup() {
 		StringBuilder sb = new StringBuilder();
 //		Camera.Parameters p = camera.getParameters();
 //		sb.append(" flash:");
@@ -304,14 +306,11 @@ public class MainActivity extends Activity
 	}
 
 	@Override
-	protected void onStop()
-	{
+	protected void onStop() {
 		super.onStop();
 		saveSettings(); 
 	}
 
-	
-	
 	@Override
 	public void onDestroy() {
 		server.stop();
