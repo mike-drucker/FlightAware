@@ -19,12 +19,13 @@
         }
         
         function picWorker() {
-            var img = $("<img id='picStore' style='display:none' />").attr('src', '/picture?t=' + (Date.now() / 1000))
+            var img = $("<img id='picStore' style='display:inline' />").attr('src', '/picture?t=' + (Date.now() / 1000))
     		.load(function () {
     		    if (!this.complete || typeof this.naturalWidth == "undefined" || this.naturalWidth == 0) {
     		        setTimeout(picWorker, 1000);
     		        console.log('broken image!');
     		    } else {
+    		        console.log('IMAGE SUCCESS');
     		        $("#something").html("");
     		        $("#something").append(img);
     		        setTimeout(picWorker, 1000);
